@@ -16,7 +16,7 @@ export class RecipeAiClient implements OnModuleInit {
   readonly isConfigured: boolean
 
   constructor(private config: ConfigService) {
-    const baseURL = this.config.get<string>('RECIPE_AI_URL', 'http://localhost:3003')
+    const baseURL = this.config.get<string>('RECIPE_AI_URL', 'http://localhost:3005')
     this.isConfigured = !!baseURL
 
     this.client = axios.create({
@@ -33,7 +33,7 @@ export class RecipeAiClient implements OnModuleInit {
     }
     try {
       await this.client.get('/api/recipes')
-      this.logger.log(`Recipe AI connecté sur ${this.config.get('RECIPE_AI_URL', 'http://localhost:3003')}`)
+      this.logger.log(`Recipe AI connecté sur ${this.config.get('RECIPE_AI_URL', 'http://localhost:3005')}`)
     } catch {
       this.logger.warn('Recipe AI inaccessible au démarrage (sera réessayé à la demande)')
     }
