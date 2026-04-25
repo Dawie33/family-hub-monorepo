@@ -1,0 +1,38 @@
+{
+  "name": "training-camp",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "docker compose up -d postgres && concurrently \"npm --workspace backend run start:dev\" \"npm --workspace frontend run dev\"",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:reset": "docker compose down -v && docker compose up -d postgres",
+    "pgadmin": "docker compose up -d pgadmin"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/helmet": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.36.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.44.1"
+  },
+  "dependencies": {
+    "@nestjs/platform-express": "^11.1.6",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "helmet": "^8.1.0",
+    "knex": "^3.1.0",
+    "nest-knexjs": "^0.0.28",
+    "zod": "^3.25.76"
+  }
+}

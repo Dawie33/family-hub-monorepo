@@ -1,0 +1,223 @@
+/* Schedule-X theme overrides for dark slate/orange theme */
+@import '@schedule-x/theme-default/dist/index.css';
+
+.sx-react-calendar-wrapper {
+  width: 100%;
+  height: 800px;
+  max-height: 80vh;
+}
+
+/*
+ * Override the .is-dark variables from the theme.
+ * The theme declares .is-dark { --sx-color-background: #141218; ... }
+ * We need .is-dark scoped inside our wrapper to beat that specificity.
+ */
+.sx-react-calendar-wrapper .is-dark,
+.sx-react-calendar-wrapper.is-dark {
+  /* Primary = orange */
+  --sx-color-primary: #f97316;
+  --sx-color-on-primary: #ffffff;
+
+  /* All surfaces/backgrounds transparent to inherit the parent slate bg */
+  --sx-color-surface: transparent;
+  --sx-color-surface-dim: transparent;
+  --sx-color-surface-bright: transparent;
+  --sx-color-surface-container: transparent;
+  --sx-color-surface-container-low: transparent;
+  --sx-color-surface-container-high: transparent;
+  --sx-color-surface-container-highest: transparent;
+  --sx-color-surface-variant: rgba(255, 255, 255, 0.05);
+  --sx-color-surface-tint: #f97316;
+  --sx-color-background: transparent;
+
+  /* Text colors */
+  --sx-color-on-surface: #e2e8f0;
+  --sx-color-on-surface-variant: #94a3b8;
+  --sx-color-on-background: #e2e8f0;
+  --sx-color-inverse-surface: rgba(255, 255, 255, 0.1);
+  --sx-color-on-inverse-surface: #e2e8f0;
+
+  /* Borders / outlines */
+  --sx-color-outline: rgba(255, 255, 255, 0.1);
+  --sx-color-outline-variant: rgba(255, 255, 255, 0.07);
+  --sx-internal-color-grid-line: rgba(255, 255, 255, 0.1);
+
+  /* Today highlight */
+  --sx-color-primary-container: rgba(249, 115, 22, 0.15);
+  --sx-color-on-primary-container: #fb923c;
+
+  /* Secondary */
+  --sx-color-secondary-container: rgba(255, 255, 255, 0.08);
+  --sx-color-on-secondary-container: #cbd5e1;
+
+  /* Ripple */
+  --sx-internal-color-gray-ripple-background: rgba(255, 255, 255, 0.08);
+}
+
+/* Also set on wrapper itself for any rules that read from wrapper directly */
+.sx-react-calendar-wrapper {
+  --sx-color-primary: #f97316;
+  --sx-color-on-primary: #ffffff;
+  --sx-color-surface: transparent;
+  --sx-color-background: transparent;
+  --sx-color-on-surface: #e2e8f0;
+}
+
+/* Root wrapper */
+.sx-react-calendar-wrapper .sx__calendar-wrapper {
+  background: transparent !important;
+  border: none;
+  color: #e2e8f0;
+}
+
+/* Header / toolbar */
+.sx-react-calendar-wrapper .sx__calendar-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sx-react-calendar-wrapper .sx__calendar-header button,
+.sx-react-calendar-wrapper .sx__date-input {
+  color: #e2e8f0;
+}
+
+.sx-react-calendar-wrapper .sx__calendar-header button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* View selection tabs */
+.sx-react-calendar-wrapper .sx__view-selection-item {
+  color: #94a3b8;
+}
+
+.sx-react-calendar-wrapper .sx__view-selection-item.is-selected {
+  color: #f97316;
+  border-color: #f97316;
+}
+
+/* Month grid */
+.sx-react-calendar-wrapper .sx__month-grid-wrapper {
+  background: transparent !important;
+}
+
+.sx-react-calendar-wrapper .sx__month-grid-cell {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent !important;
+}
+
+.sx-react-calendar-wrapper .sx__month-grid-cell:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.sx-react-calendar-wrapper .sx__month-grid-day__header-day-name,
+.sx-react-calendar-wrapper .sx__month-grid-day__header-date {
+  color: #94a3b8;
+}
+
+.sx-react-calendar-wrapper .sx__month-grid-day.is-today .sx__month-grid-day__header-date {
+  background: #f97316;
+  color: #ffffff;
+}
+
+/* Month grid day names header row */
+.sx-react-calendar-wrapper .sx__month-grid-day-names {
+  background: transparent !important;
+}
+
+/* Week/day grid */
+.sx-react-calendar-wrapper .sx__week-grid,
+.sx-react-calendar-wrapper .sx__day-grid {
+  background: transparent !important;
+}
+
+.sx-react-calendar-wrapper .sx__time-grid-day {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid__date {
+  color: #94a3b8;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid__date.is-today {
+  color: #f97316;
+}
+
+.sx-react-calendar-wrapper .sx__time-axis {
+  color: #64748b;
+}
+
+/* Date grid header (all-day events area) */
+.sx-react-calendar-wrapper .sx__date-grid-wrapper {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent !important;
+}
+
+.sx-react-calendar-wrapper .sx__date-grid-day {
+  background: transparent !important;
+}
+
+/* Time grid lines */
+.sx-react-calendar-wrapper .sx__time-grid-line {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+/* Events */
+.sx-react-calendar-wrapper .sx__event {
+  border-radius: 8px;
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.sx-react-calendar-wrapper .sx__event:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Event modal */
+.sx-react-calendar-wrapper .sx__event-modal {
+  background: #1e293b !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Forward/back chevrons */
+.sx-react-calendar-wrapper .sx__chevron-wrapper svg {
+  color: #e2e8f0;
+}
+
+/* Today button */
+.sx-react-calendar-wrapper .sx__today-button {
+  color: #f97316;
+  border-color: #f97316;
+}
+
+.sx-react-calendar-wrapper .sx__today-button:hover {
+  background: rgba(249, 115, 22, 0.1);
+}
+
+/* Plus events button */
+.sx-react-calendar-wrapper .sx__month-grid-cell__plus-events {
+  color: #f97316;
+}
+
+/* Range heading */
+.sx-react-calendar-wrapper .sx__range-heading {
+  color: #e2e8f0;
+}
+
+/* Scrollbars */
+.sx-react-calendar-wrapper ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sx-react-calendar-wrapper ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sx-react-calendar-wrapper ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}

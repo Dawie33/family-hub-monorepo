@@ -1,0 +1,13 @@
+/dist
+/node_modules
+/build
+/docker-compose.override.yml
+/.env
+.env.production
+.env.local
+.env*.local
+/.claude
+.opencode/
+opencode.json
+certbot/conf/
+certbot/www/
