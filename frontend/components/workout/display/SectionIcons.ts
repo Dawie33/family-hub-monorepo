@@ -1,0 +1,17 @@
+export const sectionIcons: Record<string, string> = {
+    warmup: '🏃',
+    skill_work: '🎯',
+    strength: '💪',
+    accessory: '🔧',
+    cardio: '❤️',
+    intervals: '⚡',
+    metcon: '🔥',
+    amrap: '🔁',
+    emom: '⏱️',
+    for_time: '⏰',
+    circuit: '🔄',
+    finisher: '💥',
+    core: '🧘',
+    mobility: '🤸',
+    cooldown: '😌',
+}

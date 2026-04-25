@@ -1,0 +1,32 @@
+# Output & dependencies
+/dist
+/node_modules
+/build
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# VSCode
+.vscode/
+
+# Env files
+.env
+.env.*
+
+# Temp files
+.temp
+.tmp
+
+# Runtime data
+*.pid
+*.pid.lock
+
+# Diagnostic reports
+report.*.json
