@@ -28,7 +28,7 @@ Monorepo npm workspaces :
 - Préfixe API : `/api`
 
 ### Base de données
-- PostgreSQL 15 (Docker, port **5434**)
+- PostgreSQL 15 (Docker, port **5432**)
 - Migrations Knex.js dans `backend/src/database/migrations/`
 - Seeds dans `backend/src/database/seeds/`
 - UUID via pgcrypto, snake_case pour les colonnes
@@ -163,7 +163,7 @@ Un fichier service par domaine : `workouts.ts`, `sessions.ts`, `skills.ts`, `sch
 **Backend `.env`** :
 ```
 DATABASE_HOST=localhost
-DATABASE_PORT=5434
+DATABASE_PORT=5432
 DATABASE_NAME=training_camp
 DATABASE_USER=postgres
 DATABASE_PASSWORD=...
@@ -191,4 +191,4 @@ En production, le backend est déployé sur Render (`https://training-camp-backe
 - `turbopack: { root: '../' }` dans `next.config.ts` provoque des redémarrages intempestifs du backend en watch mode — ne pas le remettre.
 - Les migrations Knex sont dans `backend/src/database/migrations/` (pas `backend/database/`).
 - GPT-4o ne connaît pas les workouts CrossFit Open postérieurs à début 2025. Utiliser le champ `referenceData` du endpoint `POST /workouts/lookup` pour injecter les détails exacts.
-- La DB écoute sur le port **5434** (pas 5432 par défaut).
+- La DB écoute sur le port **5432** (standard PostgreSQL — dans le monorepo, utiliser le docker-compose racine).
