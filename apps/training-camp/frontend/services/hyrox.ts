@@ -119,6 +119,7 @@ export interface HyroxStats {
 export interface GenerateHyroxDto {
   session_type: HyroxSessionType
   duration_minutes: number
+  equipment_mode?: 'saved' | 'official'
   equipment_available?: string[]
   stations_to_work?: HyroxStation[]
   level?: 'beginner' | 'intermediate' | 'advanced' | 'elite'

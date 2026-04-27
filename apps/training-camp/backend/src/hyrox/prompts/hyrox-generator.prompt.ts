@@ -145,20 +145,56 @@ Combine 2–3 stations et du run selon les zones ciblées.
 interface HyroxUserPromptParams extends GenerateHyroxSessionDto {
   userLevel?: string
   injuries?: Record<string, unknown>
+  resolvedEquipment?: string[]
+  isOfficialMode?: boolean
+  recentSessionNames?: string[]
+  variationSeed?: string
 }
 
 export function buildHyroxUserPrompt(params: HyroxUserPromptParams): string {
   const level = params.level || params.userLevel || 'intermediate'
-  const equipment = params.equipment_available?.length
-    ? `Équipement disponible : ${params.equipment_available.join(', ')}`
-    : 'Équipement non précisé — proposer des alternatives pour chaque station'
+
+  const trainingLocation = params.isOfficialMode
+    ? 'Box / Gym HYROX (tout l\'équipement officiel disponible)'
+    : 'Entraînement à la maison ou en extérieur'
+
+  let equipmentLine: string
+  if (params.isOfficialMode) {
+    equipmentLine = 'Équipement HYROX officiel complet — utiliser les vrais exercices de compétition, aucune alternative nécessaire'
+  } else if (params.resolvedEquipment && params.resolvedEquipment.length > 0) {
+    // Déduire les stations manquantes et le signaler explicitement
+    const stationEquipmentMap: Record<string, string[]> = {
+      ski_erg: ['ski_erg'],
+      sled_push: ['sled'],
+      sled_pull: ['sled'],
+      burpee_broad_jumps: [],  // poids du corps, toujours disponible
+      rowing: ['rowing', 'rower'],
+      farmers_carry: ['farmers_handles', 'dumbbells', 'kettlebell'],
+      sandbag_lunges: ['sandbag'],
+      wall_balls: ['wall_ball', 'dumbbells', 'kettlebell'],
+    }
+    const missingStations = Object.entries(stationEquipmentMap)
+      .filter(([, needed]) => needed.length > 0 && !needed.some((e) => params.resolvedEquipment!.some((a) => a.toLowerCase().includes(e.toLowerCase()))))
+      .map(([s]) => s)
+
+    equipmentLine = `Équipement disponible (profil utilisateur) : ${params.resolvedEquipment.join(', ')}`
+    if (missingStations.length > 0) {
+      equipmentLine += `\nStations sans équipement → remplacer par des alternatives poids du corps ou cardio sol : ${missingStations.join(', ')}`
+    }
+    equipmentLine += `\nIMPORTANT : les exercices poids du corps (burpees, squats, lunges, mountain climbers, bear crawl, jumping jacks, high knees, etc.) sont TOUJOURS disponibles et peuvent être utilisés librement pour remplacer ou compléter n'importe quelle station manquante.`
+  } else {
+    equipmentLine = `Aucun équipement disponible — générer une séance 100% poids du corps et course à pied.
+Utilise les équivalences suivantes : SkiErg→Burpees/Mountain Climbers | Sled Push→Squat Jumps/Bear Crawl | Sled Pull→Superman Pulls/Rowing sous table | Row→High Knees/Run 400m | Farmers Carry→Suitcase Hold/Marche sacs lourds | Sandbag Lunges→Walking Lunges | Wall Balls→Air Squats tempo.
+Les exercices poids du corps sont TOUJOURS disponibles.`
+  }
 
   let prompt = `Génère une séance de préparation HYROX :
 
 - Type : ${params.session_type}
 - Durée : ${params.duration_minutes} minutes
 - Niveau : ${level}
-- ${equipment}`
+- Lieu : ${trainingLocation}
+- ${equipmentLine}`
 
   if (params.stations_to_work?.length) {
     const labels = params.stations_to_work.map((s) => STATION_LABELS[s] || s).join(', ')
@@ -172,6 +208,13 @@ export function buildHyroxUserPrompt(params: HyroxUserPromptParams): string {
 
   if (params.additional_instructions) {
     prompt += `\n- Instructions : ${params.additional_instructions}`
+  }
+  if (params.recentSessionNames && params.recentSessionNames.length > 0) {
+    prompt += `\n\nSéances déjà générées récemment (à NE PAS reproduire) : ${params.recentSessionNames.join(' | ')}\nVarie les stations travaillées, le format des blocs et les exercices accessoires par rapport à ces séances.`
+  }
+
+  if (params.variationSeed) {
+    prompt += `\n\nDirective de variation — axe prioritaire pour cette séance : ${params.variationSeed}`
   }
 
   return prompt
