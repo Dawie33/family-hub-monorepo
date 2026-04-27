@@ -1,9 +1,10 @@
 'use client'
 
 import { fadeInUp, staggerContainer } from '@/lib/animations'
-import { athxService, ATHX_SESSION_TYPE_LABELS, AthxSessionType, GeneratedAthxPlan } from '@/services/athx'
+import { athxService, ATHX_SESSION_TYPE_LABELS, AthxSessionType, GeneratedAthxPlan, GenerateAthxDto } from '@/services/athx'
+import { usersService } from '@/services/users'
 import { motion } from 'framer-motion'
-import { ArrowLeft, BookOpen, CheckCircle, Dumbbell, Loader2, Sparkles, Timer } from 'lucide-react'
+import { ArrowLeft, BookOpen, CheckCircle, CheckCircle2, Dumbbell, Home, Loader2, Sparkles, Timer, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
@@ -47,20 +48,6 @@ const COMBINABLE_ZONES: { value: AthxSessionType; description: string; color: st
   },
 ]
 
-const EQUIPMENT_PRESETS: { label: string; description: string; items: string[] | null }[] = [
-  { label: 'Pas de filtre', description: 'L\'IA adapte librement', items: null },
-  {
-    label: 'Maison',
-    description: 'Poids du corps, haltères, kettlebell, barre de traction',
-    items: ['bodyweight', 'dumbbell', 'kettlebell', 'pull-up-bar', 'jump-rope', 'mat'],
-  },
-  {
-    label: 'Box ATHX',
-    description: 'Barre, disques, rack, cardio complet, anneaux',
-    items: ['barbell', 'plates', 'rack', 'bench', 'dumbbell', 'kettlebell', 'pull-up-bar', 'jump-rope', 'rings', 'wall-ball', 'rower', 'assault-bike', 'ski-erg', 'box'],
-  },
-]
-
 const ZONE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   warmup: { bg: 'bg-green-500/5', text: 'text-green-400', border: 'border-l-green-500' },
   strength: { bg: 'bg-red-500/5', text: 'text-red-400', border: 'border-l-red-500' },
@@ -77,10 +64,20 @@ export default function GenerateAthxPage() {
   const [durationManuallyChanged, setDurationManuallyChanged] = useState(false)
   const [competitionDate, setCompetitionDate] = useState('')
   const [additionalInstructions, setAdditionalInstructions] = useState('')
-  const [equipmentPreset, setEquipmentPreset] = useState<number>(0) // index dans EQUIPMENT_PRESETS
+  const [equipmentMode, setEquipmentMode] = useState<'official' | 'saved'>('official')
+  const [savedEquipment, setSavedEquipment] = useState<string[]>([])
+  const [loadingProfile, setLoadingProfile] = useState(false)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [plan, setPlan] = useState<GeneratedAthxPlan | null>(null)
+
+  useEffect(() => {
+    setLoadingProfile(true)
+    usersService.getUserProfile()
+      .then((user) => setSavedEquipment(user.equipment_available ?? []))
+      .catch(() => {})
+      .finally(() => setLoadingProfile(false))
+  }, [])
 
   const toggleZone = (zone: AthxSessionType) => {
     if (fullCompetition) {
@@ -122,15 +119,13 @@ export default function GenerateAthxPage() {
     ? selectedZones.map((z) => ATHX_SESSION_TYPE_LABELS[z]).join(', ')
     : undefined
 
-  const selectedEquipment = EQUIPMENT_PRESETS[equipmentPreset].items
-
-  const buildParams = () => ({
+  const buildParams = (): GenerateAthxDto => ({
     session_type: sessionType,
     duration_minutes: durationMinutes,
     target_zones: targetZones,
+    equipment_mode: equipmentMode,
     competition_date: competitionDate || undefined,
     additional_instructions: additionalInstructions || undefined,
-    equipment_available: selectedEquipment ?? undefined,
   })
 
   const handleGenerate = async () => {
@@ -251,28 +246,66 @@ export default function GenerateAthxPage() {
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500" />
             </div>
 
-            {/* Équipement */}
+            {/* Lieu d'entraînement */}
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">Lieu d'entraînement</label>
-              <div className="grid grid-cols-1 gap-2">
-                {EQUIPMENT_PRESETS.map((preset, i) => (
-                  <button
-                    key={preset.label}
-                    onClick={() => setEquipmentPreset(i)}
-                    className={`text-left p-3 rounded-xl border bg-white/5 transition-all ${
-                      equipmentPreset === i
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-purple-500/20 text-slate-300 hover:border-purple-500/40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-sm">{preset.label}</p>
-                      {equipmentPreset === i && <span className="w-2 h-2 rounded-full bg-purple-400" />}
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{preset.description}</p>
-                  </button>
-                ))}
+              <label className="block text-sm font-semibold text-slate-300 mb-3">Lieu d'entraînement</label>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  onClick={() => setEquipmentMode('official')}
+                  className={`text-left p-3 rounded-xl border transition-all ${
+                    equipmentMode === 'official'
+                      ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'
+                  }`}>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <Trophy className="w-3.5 h-3.5" />
+                    <p className="font-semibold text-sm">Box ATHX</p>
+                  </div>
+                  <p className="text-[11px] mt-0.5 opacity-70">Tout l'équipement officiel</p>
+                </button>
+                <button
+                  onClick={() => setEquipmentMode('saved')}
+                  className={`text-left p-3 rounded-xl border transition-all ${
+                    equipmentMode === 'saved'
+                      ? 'bg-pink-500/20 border-pink-500 text-pink-400'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'
+                  }`}>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <Home className="w-3.5 h-3.5" />
+                    <p className="font-semibold text-sm">À la maison</p>
+                  </div>
+                  <p className="text-[11px] mt-0.5 opacity-70">Mon équipement + poids du corps</p>
+                </button>
               </div>
+
+              {equipmentMode === 'official' && (
+                <p className="text-xs text-slate-500">Séance avec tout le matériel ATHX — barre, cardio machines, disques...</p>
+              )}
+
+              {equipmentMode === 'saved' && (
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                  {loadingProfile ? (
+                    <p className="text-xs text-slate-500">Chargement...</p>
+                  ) : savedEquipment.length > 0 ? (
+                    <>
+                      <p className="text-xs text-slate-400 mb-2">Équipement enregistré dans ton profil :</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {savedEquipment.map((e) => (
+                          <span key={e} className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                            <CheckCircle2 className="w-3 h-3" />{e}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-2">Équipement manquant → exercices poids du corps.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-400">Aucun équipement → séance 100% poids du corps.</p>
+                      <Link href="/profile" className="text-xs text-purple-400 hover:underline mt-1 inline-block">Configurer mon équipement →</Link>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Instructions */}

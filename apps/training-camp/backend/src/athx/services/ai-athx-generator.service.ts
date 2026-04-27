@@ -33,22 +33,28 @@ export class AIAthxGeneratorService {
     return axes[idx]
   }
 
-  async generateAthxSession(userId: string, params: GenerateAthxSessionDto, recentSessionNames: string[] = []): Promise<GeneratedAthxPlanValidated> {
+  async generateAthxSession(userId: string, params: GenerateAthxSessionDto, recentSessionNames: string[] = [], recentEnduranceExercises: string[] = []): Promise<GeneratedAthxPlanValidated> {
     const ctx = await this.userContextService.getUserAIContext(userId)
 
     try {
+      // En mode 'saved' profil vide → on force une liste minimale poids du corps
+      // pour que hasEquipmentConstraint soit true et que les machines cardio soient bloquées
+      const HOME_BODYWEIGHT: string[] = ['bodyweight', 'jump-rope']
+
       const equipmentAvailable = params.equipment_mode === 'official'
         ? undefined
         : params.equipment_mode === 'saved'
-          ? (ctx.equipment_available.length > 0 ? ctx.equipment_available : undefined)
+          ? (ctx.equipment_available.length > 0 ? ctx.equipment_available : HOME_BODYWEIGHT)
           : (params.equipment_available ?? ctx.equipment_available)
+
+      const isHomeMode = params.equipment_mode === 'saved'
 
       const variationSeed = this.pickVariationSeed(recentSessionNames)
 
       const completion = await this.openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: buildAthxSystemPrompt(equipmentAvailable) },
+          { role: 'system', content: buildAthxSystemPrompt(equipmentAvailable, isHomeMode) },
           {
             role: 'user',
             content: buildAthxUserPrompt({
@@ -58,6 +64,7 @@ export class AIAthxGeneratorService {
               equipmentAvailable,
               injuries: ctx.injuries,
               recentSessionNames,
+              recentEnduranceExercises,
               variationSeed,
               trainingLocation: params.equipment_mode === 'official' ? 'Box ATHX' : 'Maison / extérieur',
             }),

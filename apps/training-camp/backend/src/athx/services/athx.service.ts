@@ -67,28 +67,44 @@ export class AthxService {
     return session
   }
 
-  private async getRecentAiSessionNames(userId: string): Promise<string[]> {
+  private async getRecentAiContext(userId: string): Promise<{ sessionNames: string[]; enduranceExercises: string[] }> {
     const rows = await this.knex('athx_sessions')
       .where({ user_id: userId, source: 'ai_generated' })
       .whereNotNull('ai_plan')
       .orderBy('created_at', 'desc')
-      .limit(3)
+      .limit(5)
       .select('ai_plan')
-    return rows
-      .map((r) => {
-        try { return (JSON.parse(r.ai_plan) as { name?: string }).name ?? null } catch { return null }
-      })
-      .filter(Boolean) as string[]
+
+    const sessionNames: string[] = []
+    const enduranceExercises: string[] = []
+
+    for (const r of rows) {
+      try {
+        const plan = JSON.parse(r.ai_plan) as { name?: string; blocks?: { zone?: string; exercises?: { name?: string }[] }[] }
+        if (plan.name) sessionNames.push(plan.name)
+        if (plan.blocks) {
+          for (const block of plan.blocks) {
+            if (block.zone === 'endurance' && block.exercises) {
+              for (const ex of block.exercises) {
+                if (ex.name) enduranceExercises.push(ex.name)
+              }
+            }
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    return { sessionNames: sessionNames.slice(0, 3), enduranceExercises }
   }
 
   async generatePreview(userId: string, params: GenerateAthxSessionDto) {
-    const recentNames = await this.getRecentAiSessionNames(userId)
-    return this.aiGenerator.generateAthxSession(userId, params, recentNames)
+    const { sessionNames, enduranceExercises } = await this.getRecentAiContext(userId)
+    return this.aiGenerator.generateAthxSession(userId, params, sessionNames, enduranceExercises)
   }
 
   async generateAndSave(userId: string, params: GenerateAthxSessionDto) {
-    const recentNames = await this.getRecentAiSessionNames(userId)
-    const plan = await this.aiGenerator.generateAthxSession(userId, params, recentNames)
+    const { sessionNames, enduranceExercises } = await this.getRecentAiContext(userId)
+    const plan = await this.aiGenerator.generateAthxSession(userId, params, sessionNames, enduranceExercises)
     const scheduledDate = params.scheduled_date ?? new Date().toISOString().slice(0, 10)
 
     const [session] = await this.knex('athx_sessions')

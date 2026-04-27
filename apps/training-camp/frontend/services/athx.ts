@@ -75,6 +75,7 @@ export interface GenerateAthxDto {
   session_type: AthxSessionType
   duration_minutes: number
   level?: 'beginner' | 'intermediate' | 'advanced' | 'elite'
+  equipment_mode?: 'saved' | 'official'
   target_zones?: string
   competition_date?: string
   additional_instructions?: string
