@@ -145,9 +145,8 @@ export class WorkoutScheduleService {
    */
   async create(userId: string, data: CreateScheduleDto) {
     const isBoxSession = data.session_type === 'box_session'
-    const isProgramSession = data.session_type === 'program_session'
 
-    if (!isBoxSession && !isProgramSession && !data.workout_id && !data.personalized_workout_id) {
+    if (!isBoxSession && !data.workout_id && !data.personalized_workout_id) {
       throw new BadRequestException('workout_id ou personalized_workout_id est requis')
     }
 
@@ -195,7 +194,6 @@ export class WorkoutScheduleService {
         personalized_workout_id: data.personalized_workout_id || null,
         scheduled_date: data.scheduled_date,
         session_type: data.session_type || 'workout',
-        program_enrollment_id: data.program_enrollment_id || null,
         notes: data.notes || null,
         status: 'scheduled',
       })
@@ -333,7 +331,6 @@ export class WorkoutScheduleService {
 
     const sessionTypeToDay = (sessionType: string): string => {
       if (sessionType === 'box_session') return 'box'
-      if (sessionType === 'program_session') return 'program'
       return 'perso'
     }
 

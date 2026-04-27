@@ -18,7 +18,6 @@ import {
   Dumbbell,
   Footprints,
   Home,
-  PenLine,
   TrendingUp,
   Trophy,
   Zap,
@@ -62,12 +61,6 @@ export function AppSidebar({ isOpen }: isSidebarOpen) {
         { href: '/dashboard', label: 'Tableau de bord', icon: <Home className="w-5 h-5" /> },
         { href: '/calendar', label: 'Calendrier', icon: <Calendar className="w-5 h-5" /> },
         { href: '/tracking', label: 'Suivi', icon: <TrendingUp className="w-5 h-5" /> },
-      ],
-    },
-    {
-      label: 'Entraînements',
-      items: [
-        { href: '/training-programs', label: 'Programmes', icon: <PenLine className="w-5 h-5" /> },
       ],
     },
     {

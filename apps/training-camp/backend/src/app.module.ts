@@ -15,7 +15,6 @@ import { OneRepMaxesModule } from './one-rep-maxes/one-rep-maxes.module'
 import { SkillsModule } from './skills/skills.module'
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module'
 import { GoogleCalendarModule } from './google-calendar/google-calendar.module'
-import { TrainingProgramsModule } from './training-programs/training-programs.module'
 import { ScheduledActivitiesModule } from './scheduled-activities/scheduled-activities.module'
 import { RunningModule } from './running/running.module'
 import { AthxModule } from './athx/athx.module'
@@ -45,7 +44,6 @@ import { HyroxModule } from './hyrox/hyrox.module'
     SkillsModule,
     OneRepMaxesModule,
     GoogleCalendarModule,
-    TrainingProgramsModule,
     ScheduledActivitiesModule,
     RunningModule,
     AthxModule,

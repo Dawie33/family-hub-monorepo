@@ -19,9 +19,7 @@ export interface UnifiedActivity {
   // Champs CrossFit (source: user_workout_schedule)
   workout_id?: string
   personalized_workout_id?: string
-  program_enrollment_id?: string
-  session_type?: 'workout' | 'box_session' | 'program_session'
-  session_data?: Record<string, unknown>
+  session_type?: 'workout' | 'box_session'
   workout_name?: string
   workout_type?: string
   difficulty?: string
