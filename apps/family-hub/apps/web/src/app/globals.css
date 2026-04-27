@@ -37,6 +37,28 @@
 }
 
 @theme inline {
+  /* Couleurs recipe */
+  --color-herb: #5D9E6A;
+  --color-herb-50: #EEF7F0;
+  --color-herb-100: #D4EDD8;
+  --color-clay: #C8643C;
+  --color-clay-50: #FAF0EB;
+  --color-clay-100: #F2D8CC;
+  --color-clay-700: #9E4D2E;
+  --color-coral: #FF6B6B;
+  --color-coral-light: #FFE8E8;
+  --color-mango: #FF9F43;
+  --color-sunshine: #FFD93D;
+  --color-mint: #6BCB77;
+  --color-sky: #4D96FF;
+  --color-lavender: #9B59B6;
+  --color-peach: #FFAB91;
+  --color-surface: #F7F8FA;
+  --color-muted: #64748B;
+  --color-muted-light: #94A3B8;
+  --color-border: #E8EBF0;
+  --gradient-warm: linear-gradient(135deg, #FF9F43 0%, #FF6B6B 100%);
+  /* Couleurs family-hub */
   --color-fw-blue: #4784EC;
   --color-fw-blue-dark: #3860b0;
   --color-fw-navy: #11253E;
@@ -58,4 +80,107 @@ body {
 h1, h2, h3, h4 {
   font-family: "Nunito", "Open Sans", Helvetica, Arial, sans-serif;
   color: #11253E;
+}
+
+/* ── Utilitaires Recipe ────────────────────────────────── */
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-down { animation: slide-down 0.22s ease-out both; }
+.animate-fade-up    { animation: fade-up 0.3s ease-out both; }
+
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 55ms; }
+.stagger > *:nth-child(3) { animation-delay: 110ms; }
+.stagger > *:nth-child(4) { animation-delay: 165ms; }
+
+.recipe-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+
+.recipe-card-hover:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  transform: translateY(-3px) scale(1.01);
+  border-color: var(--color-coral);
+}
+
+.recipe-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1.5px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.recipe-chip-idle {
+  background: var(--color-surface);
+  color: var(--color-muted);
+  border-color: var(--color-border);
+}
+.recipe-chip-idle:hover { background: #fff; border-color: var(--color-coral); color: var(--color-coral); }
+.recipe-chip-coral  { background: var(--color-coral);   color: #fff; border-color: var(--color-coral); }
+.recipe-chip-mango  { background: var(--color-mango);   color: #fff; border-color: var(--color-mango); }
+.recipe-chip-mint   { background: var(--color-mint);    color: #fff; border-color: var(--color-mint); }
+.recipe-chip-sky    { background: var(--color-sky);     color: #fff; border-color: var(--color-sky); }
+.recipe-chip-clay   { background: var(--color-clay);    color: #fff; border-color: var(--color-clay); }
+
+.recipe-btn-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 28px;
+  background: var(--gradient-warm);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+}
+.recipe-btn-cta:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,107,107,0.5); }
+.recipe-btn-cta:disabled { background: #E2E8F0; color: #94A3B8; box-shadow: none; cursor: not-allowed; }
+
+.recipe-section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted-light);
+}
+
+.recipe-step-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 50%;
+  background: var(--gradient-warm);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(255,107,107,0.3);
 }

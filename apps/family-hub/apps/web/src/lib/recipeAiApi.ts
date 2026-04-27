@@ -1,37 +1,112 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+import { GeneratedRecipe, GeneratedMealPlan, DietaryFilter, CuisineType, Difficulty, MaxDuration } from '@/types/recipe';
 
-export interface RecipeNutrition {
-  calories: number;
-  proteins: number;
-  carbs: number;
-  fat: number;
-}
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
 
-export interface Recipe {
-  id?: string;
+// ─── Types re-exportés pour la page existante ──────────────────────────────
+
+export type { GeneratedRecipe as Recipe };
+
+// Type retourné par NestJS /api/recipes (format entity)
+interface NestRecipeIngredient { item: string; quantity?: string }
+interface NestRecipe {
+  id: number;
   title: string;
-  ingredients: string[];
-  steps: string[];
-  duration: string;
-  difficulty: 'débutant' | 'intermédiaire' | 'chef';
-  nutrition?: RecipeNutrition;
-  filters?: string[];
-  cuisine_type?: string;
-  rating?: number;
-  comment?: string;
-  created_at?: string;
+  ingredients: NestRecipeIngredient[];
+  instructions: string | null;
+  prep_time: number | null;
+  tags: string[];
+  source: string;
+  is_favorite: boolean;
+  created_at: string;
 }
 
-// Ancien type conservé pour compatibilité
-export interface Meal {
-  id: string;
-  name: string;
-  day: string;
-  type: 'breakfast' | 'lunch' | 'dinner';
-  calories: number;
-  prepTime: number;
-  image?: string;
+function nestToUi(r: NestRecipe): GeneratedRecipe {
+  return {
+    title: r.title,
+    ingredients: r.ingredients.map((i) => [i.quantity, i.item].filter(Boolean).join(' ')),
+    steps: r.instructions ? r.instructions.split('\n').filter(Boolean) : [],
+    duration: r.prep_time ? `${r.prep_time} min` : '—',
+    difficulty: 'débutant',
+  };
 }
+
+// ─── Recettes sauvegardées ──────────────────────────────────────────────────
+
+export async function getSavedRecipes(): Promise<(GeneratedRecipe & { id?: string; created_at?: string })[]> {
+  try {
+    const res = await fetch(`${API_BASE}/recipes`);
+    if (!res.ok) return [];
+    const data: NestRecipe[] = await res.json();
+    return data.map((r) => ({ ...nestToUi(r), id: String(r.id), created_at: r.created_at }));
+  } catch {
+    return [];
+  }
+}
+
+export async function deleteRecipe(id: string): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/recipes/${id}`, { method: 'DELETE' });
+  return res.ok;
+}
+
+export async function saveRecipe(recipe: GeneratedRecipe): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/recipes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: recipe.title,
+      ingredients: recipe.ingredients.map((item) => ({ item })),
+      instructions: recipe.steps.join('\n'),
+      source: 'chat',
+      tags: recipe.filters ?? [],
+    }),
+  });
+  return res.ok;
+}
+
+// ─── Génération ─────────────────────────────────────────────────────────────
+
+export interface GenerateRecipeParams {
+  ingredients: string[];
+  filters?: DietaryFilter[];
+  cuisineTypes?: CuisineType[];
+  platTypes?: string[];
+  difficulty?: Difficulty;
+  maxDuration?: MaxDuration;
+}
+
+export interface GenerateMealPlanParams {
+  numberOfMeals: number;
+  numberOfPeople: number;
+  filters?: DietaryFilter[];
+  cuisineTypes?: CuisineType[];
+  platTypes?: string[];
+  difficulty?: Difficulty;
+  maxDuration?: MaxDuration;
+}
+
+export async function generateRecipe(params: GenerateRecipeParams): Promise<GeneratedRecipe> {
+  const res = await fetch(`${API_BASE}/recipes/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error('Erreur lors de la génération de la recette');
+  return res.json();
+}
+
+export async function generateMealPlan(
+  params: GenerateMealPlanParams
+): Promise<GeneratedMealPlan> {
+  const res = await fetch(`${API_BASE}/recipes/meal-plan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error('Erreur lors de la génération du plan');
+  return res.json();
+}
+
+// ─── Anciens types conservés pour d'éventuels usages ───────────────────────
 
 export interface ShoppingList {
   id: string;
@@ -45,11 +120,9 @@ export interface ShoppingItem {
   id: string;
   name: string;
   quantity: string | null;
-  unit: string | null; // utilisé comme catégorie
+  unit: string | null;
   checked: boolean;
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export async function getShoppingLists(familyId?: string): Promise<ShoppingList[]> {
   const url = new URL(`${API_BASE}/shopping/lists`);
@@ -63,19 +136,4 @@ export async function getShoppingItems(listId: string): Promise<ShoppingItem[]> 
   const res = await fetch(`${API_BASE}/shopping/items?list_id=${listId}`);
   if (!res.ok) return [];
   return res.json();
-}
-
-export async function deleteRecipe(id: string): Promise<boolean> {
-  const res = await fetch(`${API_BASE}/recipe-ai/recipes/${id}`, { method: 'DELETE' });
-  return res.ok;
-}
-
-export async function getSavedRecipes(): Promise<Recipe[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/recipe-ai/recipes`);
-    if (!response.ok) return [];
-    return response.json();
-  } catch {
-    return [];
-  }
 }
