@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { Knex } from "knex"
 import { InjectModel } from "nest-knexjs"
-import { UpdateUserDto, UserQueryDto } from "./dto"
+import { UpdateUserDto, UserProfile, UserQueryDto } from "./dto"
 
 @Injectable()
 
@@ -9,6 +9,11 @@ export class UsersService {
     constructor(
         @InjectModel() private readonly knex: Knex
     ) { }
+
+    private sanitizeUser(user: Record<string, unknown>): Omit<UserProfile, 'stats'> {
+        const { password, ...sanitized } = user
+        return sanitized as Omit<UserProfile, 'stats'>
+    }
 
     /**
      * Récupère un utilisateur par son ID avec ses statistiques.
@@ -24,8 +29,7 @@ export class UsersService {
 
         if (!user) return null
 
-        // Masquer le mot de passe
-        const { password, ...sanitizedUser } = user
+        const sanitizedUser = this.sanitizeUser(user)
 
         // Récupérer les stats de l'utilisateur
         const [workoutsCount, sessionsCount, totalTime] = await Promise.all([
@@ -108,11 +112,7 @@ export class UsersService {
             .offset(Number(offset))
             .orderBy(orderBy, orderDir)
 
-        // Masquer les mots de passe
-        const sanitizedRows = rows.map(user => {
-            const { password, ...rest } = user
-            return rest
-        })
+        const sanitizedRows = rows.map(user => this.sanitizeUser(user))
 
         const countQuery = this.knex('users').count('* as count')
 
@@ -149,8 +149,7 @@ export class UsersService {
 
         if (!user) return null
 
-        // Masquer le mot de passe
-        const { password, ...sanitizedUser } = user
+        const sanitizedUser = this.sanitizeUser(user)
 
         // Récupérer les stats de l'utilisateur
         const [workoutsCount, sessionsCount] = await Promise.all([
@@ -202,10 +201,7 @@ export class UsersService {
 
         if (!row) return null
 
-        // Masquer le mot de passe
-        const { password, ...sanitizedUser } = row
-
-        return sanitizedUser
+        return this.sanitizeUser(row)
     }
 
     /**

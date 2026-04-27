@@ -1,5 +1,27 @@
 import { IsArray, IsBoolean, IsEmail, IsIn, IsNumber, IsOptional, IsString, MinLength } from 'class-validator'
 
+export type UserProfile = {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  role: 'user' | 'admin' | 'coach'
+  sport_level: string
+  height: number | null
+  weight: number | null
+  body_fat_percentage: number | null
+  equipment_available: string[]
+  benchmark_results: Record<string, unknown>
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  stats?: {
+    workouts: number
+    sessions: number
+    total_time_minutes?: number
+  }
+}
+
 export class CreateUserDto {
   @IsEmail()
   email!: string
