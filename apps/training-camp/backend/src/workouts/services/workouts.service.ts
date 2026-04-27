@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { format } from 'date-fns'
 import { Knex } from 'knex'
 import { InjectModel } from 'nest-knexjs'
@@ -95,7 +95,7 @@ export class WorkoutsService {
       .orderBy('id', 'asc')
 
     if (!workouts || workouts.length === 0) {
-      throw new Error('Aucun workout publié trouvé')
+      throw new NotFoundException('Aucun workout publié trouvé')
     }
 
     // Sélectionner le workout du jour basé sur un hash de la date
@@ -117,19 +117,13 @@ export class WorkoutsService {
    * @returns Liste des workouts benchmark triés par difficulté
    */
   async getBenchmarkWorkouts() {
-    try {
-      const rows = await this.knex('workouts')
-        .select('workouts.*')
-        .where({ 'workouts.status': 'published', 'workouts.is_benchmark': true })
-        .orderBy('workouts.difficulty', 'asc')
-        .orderBy('workouts.name', 'asc')
+    const rows = await this.knex('workouts')
+      .select('workouts.*')
+      .where({ 'workouts.status': 'published', 'workouts.is_benchmark': true })
+      .orderBy('workouts.difficulty', 'asc')
+      .orderBy('workouts.name', 'asc')
 
-      const count = rows.length
-
-      return { rows, count }
-    } catch (error) {
-      throw new Error('Erreur dans la récupération des benchmarks: ' + error.message)
-    }
+    return { rows, count: rows.length }
   }
 
   async getPersonalizedWorkouts(
@@ -272,19 +266,15 @@ export class WorkoutsService {
   * @throws {Error} Si le workout n'est pas trouvé ou que l'utilisateur n'a pas les permissions nécessaires
   */
   async getPersonalizedWorkout(id: string, userId: string) {
-    try {
-      const workout = await this.knex('personalized_workouts')
-        .where({ id, user_id: userId })
-        .first()
+    const workout = await this.knex('personalized_workouts')
+      .where({ id, user_id: userId })
+      .first()
 
-      if (!workout) {
-        throw new Error('Personalized workout not found or you do not have permission to access it')
-      }
-
-      return workout
-    } catch (error) {
-      throw new Error('Failed to fetch personalized workout: ' + error.message)
+    if (!workout) {
+      throw new NotFoundException('Personalized workout not found or you do not have permission to access it')
     }
+
+    return workout
   }
 
   /**
@@ -294,25 +284,19 @@ export class WorkoutsService {
    * @param userId ID de l'utilisateur
    */
   async deletePersonalizedWorkout(id: string, userId: string) {
-    try {
-      // Vérifier que le workout appartient bien à l'utilisateur
-      const workout = await this.knex('personalized_workouts')
-        .where({ id, user_id: userId })
-        .first()
+    const workout = await this.knex('personalized_workouts')
+      .where({ id, user_id: userId })
+      .first()
 
-      if (!workout) {
-        throw new Error('Personalized workout not found or you do not have permission to delete it')
-      }
-
-      // Supprimer le workout
-      await this.knex('personalized_workouts')
-        .where({ id, user_id: userId })
-        .delete()
-
-      return { success: true }
-    } catch (error) {
-      throw new Error('Failed to delete personalized workout: ' + error.message)
+    if (!workout) {
+      throw new NotFoundException('Personalized workout not found or you do not have permission to delete it')
     }
+
+    await this.knex('personalized_workouts')
+      .where({ id, user_id: userId })
+      .delete()
+
+    return { success: true }
   }
 
   /**
@@ -334,7 +318,7 @@ export class WorkoutsService {
       const baseWorkout = await this.knex('workouts').where({ id: workout.id }).first()
 
       if (!baseWorkout) {
-        throw new Error(`Base workout with id ${workout.id} does not exist`)
+        throw new NotFoundException(`Base workout with id ${workout.id} does not exist`)
       }
 
       baseId = workout.id
@@ -354,12 +338,8 @@ export class WorkoutsService {
       params_json: JSON.stringify({}), // Objet vide par défaut
     }
 
-    try {
-      const newWorkout = await this.knex('personalized_workouts').insert(record).returning('*')
-      return newWorkout[0]
-    } catch (error) {
-      throw new Error('Failed to create personalized workout: ' + error.message)
-    }
+    const newWorkout = await this.knex('personalized_workouts').insert(record).returning('*')
+    return newWorkout[0]
   }
 
   /**

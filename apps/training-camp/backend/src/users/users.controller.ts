@@ -8,6 +8,7 @@ export class UsersController {
     constructor(private readonly service: UsersService) { }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     async findAll(@Query() query: UserQueryDto) {
         return this.service.findAll(query)
     }
@@ -21,6 +22,7 @@ export class UsersController {
     }
 
     @Get(':id')
+    @UseGuards(JwtAuthGuard)
     async findOne(@Param('id') id: string) {
         return this.service.findOne(id)
     }
@@ -32,11 +34,13 @@ export class UsersController {
     }
 
     @Patch(':id')
+    @UseGuards(JwtAuthGuard)
     async update(@Param('id') id: string, @Body() data: UpdateUserDto) {
         return this.service.update(id, data)
     }
 
     @Delete(':id')
+    @UseGuards(JwtAuthGuard)
     async delete(@Param('id') id: string) {
         return this.service.delete(id)
     }

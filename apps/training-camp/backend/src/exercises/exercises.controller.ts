@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common"
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common"
+import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard"
 import { CreateExerciseDto, ExerciseQueryDto, UpdateExerciseDto } from "./dto/exercises.dto"
 import { ExercisesService } from "./exercises.service"
 
@@ -24,16 +25,19 @@ export class ExercisesController {
     }
 
     @Post()
+    @UseGuards(JwtAuthGuard)
     async create(@Body() data: CreateExerciseDto) {
         return this.service.create(data)
     }
 
     @Patch(':id')
+    @UseGuards(JwtAuthGuard)
     async update(@Param('id') id: string, @Body() data: UpdateExerciseDto) {
         return this.service.update(id, data)
     }
 
     @Delete(':id')
+    @UseGuards(JwtAuthGuard)
     async delete(@Param('id') id: string) {
         return this.service.delete(id)
     }

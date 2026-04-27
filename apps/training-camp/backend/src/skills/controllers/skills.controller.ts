@@ -43,6 +43,7 @@ export class SkillsController {
   }
 
   @Post('generate-ai')
+  @UseGuards(JwtAuthGuard)
   async generateWithAI(@Body() dto: GenerateSkillProgramDto) {
     return this.aiGenerator.generateSkillProgram(dto)
   }
