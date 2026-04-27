@@ -17,8 +17,20 @@
     "build:training-camp": "npm run build --workspace=apps/training-camp",
     "build:family-hub": "npm run build --workspace=apps/family-hub",
     "build": "npm run build:training-camp && npm run build:family-hub",
+
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "pgadmin": "docker compose --profile tools up -d pgadmin",
+
+    "supabase:start": "npm run supabase:start --workspace=apps/family-hub",
+    "supabase:stop": "npm run supabase:stop --workspace=apps/family-hub",
+    "supabase:status": "npm run supabase:status --workspace=apps/family-hub",
+    "supabase:reset": "npm run supabase:reset --workspace=apps/family-hub",
+    "supabase:studio": "node -e \"console.log('Studio Supabase : http://127.0.0.1:54323')\"",
+
+    "fh:dev": "npm run supabase:start && npm run dev:family-hub",
+
+    "urls": "node -e \"console.log('\\nURLs disponibles :\\n  family-hub web    http://localhost:3002\\n  family-hub api    http://localhost:3003/api\\n  Supabase Studio   http://127.0.0.1:54323\\n  pgAdmin           http://localhost:5050\\n  training-camp     http://localhost:3000\\n')\""
   },
   "devDependencies": {
     "concurrently": "^9.0.0",

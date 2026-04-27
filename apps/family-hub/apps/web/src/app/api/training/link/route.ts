@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
-const TRAINING_CAMP_API = process.env.TRAINING_CAMP_API || 'https://training-camp-backend.onrender.com/api';
+const TRAINING_CAMP_API = process.env.TRAINING_CAMP_API || 'https://training-camp.onrender.com/api';
 
 export async function DELETE() {
   try {
@@ -54,10 +54,20 @@ export async function POST(request: Request) {
     });
 
     if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error('[training/link] login failed', res.status, res.url, body);
       return NextResponse.json({ error: 'Identifiants Training-Camp invalides' }, { status: 400 });
     }
 
-    const { access_token } = await res.json();
+    // Le token est dans le cookie httpOnly de la réponse, pas dans le body JSON
+    const setCookieHeader = res.headers.get('set-cookie') ?? '';
+    const tokenMatch = setCookieHeader.match(/access_token=([^;]+)/);
+    const access_token = tokenMatch?.[1];
+
+    if (!access_token) {
+      console.error('[training/link] access_token absent du cookie', setCookieHeader);
+      return NextResponse.json({ error: 'Token Training-Camp non reçu' }, { status: 500 });
+    }
 
     // Récupère le member_id lié à cet utilisateur Supabase
     const { data: member } = await supabase

@@ -258,6 +258,7 @@ CREATE TABLE IF NOT EXISTS member_integrations (
   refresh_token      TEXT,
   token_expires_at   TIMESTAMPTZ,
   provider_email     TEXT,
+  provider_password  TEXT,
   status             TEXT        NOT NULL DEFAULT 'active',
   gmail_last_check   TIMESTAMPTZ,
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),

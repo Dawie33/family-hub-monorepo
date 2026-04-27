@@ -9,7 +9,7 @@ import type { ApiClientConfig, RequestOptions } from './types'
 // En développement, utiliser localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'production'
-    ? 'https://training-camp-backend.onrender.com/api'
+    ? 'https://training-camp.onrender.com/api'
     : 'http://localhost:3001/api')
 
 console.log('🔧 API_URL configured:', API_URL)

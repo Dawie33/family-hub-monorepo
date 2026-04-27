@@ -179,7 +179,7 @@ FRONTEND_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
 
-En production, le backend est déployé sur Render (`https://training-camp-backend.onrender.com/api`).
+En production, le backend est déployé sur Render (`https://training-camp.onrender.com/api`).
 
 ### Sécurité frontend
 
