@@ -71,14 +71,15 @@ Copier `.env.example` en `.env` et remplir les valeurs. Les variables sont préf
 
 Chaque app charge aussi son propre `.env` / `.env.local` dans son répertoire.
 
-## Subtree git
+## Déploiement
 
-Les apps ont été intégrées via `git subtree add --squash`. Pour synchroniser avec leur repo d'origine :
+| App | Service | Plateforme | Repo source |
+|-----|---------|-----------|-------------|
+| training-camp backend | NestJS | Render | ce monorepo — `apps/training-camp/backend` |
+| training-camp frontend | Next.js | Render | ce monorepo — `apps/training-camp/frontend` |
+| family-hub web | Next.js | — | ce monorepo — `apps/family-hub/apps/web` |
 
-```bash
-git subtree pull --prefix=apps/training-camp https://github.com/Dawie33/training-camp.git main --squash
-git subtree pull --prefix=apps/family-hub https://github.com/Dawie33/family-hub.git main --squash
-```
+Render est configuré pour déployer depuis `github.com/Dawie33/family-hub-monorepo.git` avec le Root Directory pointant vers le sous-dossier concerné. Un push sur `main` déclenche un redéploiement automatique.
 
 ## Stack commune
 
