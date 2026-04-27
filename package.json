@@ -8,18 +8,15 @@
     "apps/training-camp/backend",
     "apps/family-hub",
     "apps/family-hub/apps/web",
-    "apps/family-hub/apps/backend",
-    "apps/recipe-ai"
+    "apps/family-hub/apps/backend"
   ],
   "scripts": {
     "dev:training-camp": "npm run dev --workspace=apps/training-camp",
     "dev:family-hub": "npm run dev --workspace=apps/family-hub",
-    "dev:recipe-ai": "npm run dev --workspace=apps/recipe-ai",
-    "dev": "concurrently \"npm run dev:training-camp\" \"npm run dev:family-hub\" \"npm run dev:recipe-ai\"",
+    "dev": "concurrently \"npm run dev:training-camp\" \"npm run dev:family-hub\"",
     "build:training-camp": "npm run build --workspace=apps/training-camp",
     "build:family-hub": "npm run build --workspace=apps/family-hub",
-    "build:recipe-ai": "npm run build --workspace=apps/recipe-ai",
-    "build": "npm run build:training-camp && npm run build:family-hub && npm run build:recipe-ai",
+    "build": "npm run build:training-camp && npm run build:family-hub",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
