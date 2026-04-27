@@ -16,8 +16,18 @@ export class AIHyroxGeneratorService {
     this.openai = new OpenAI({ apiKey })
   }
 
-  async generateHyroxSession(userId: string, params: GenerateHyroxSessionDto): Promise<GeneratedHyroxPlanValidated> {
+  async generateHyroxSession(userId: string, params: GenerateHyroxSessionDto, recentSessionNames: string[] = []): Promise<GeneratedHyroxPlanValidated> {
     const ctx = await this.userContextService.getUserAIContext(userId)
+
+    // Résolution de l'équipement selon le mode choisi
+    let resolvedEquipment: string[] | undefined
+    if (params.equipment_mode === 'official') {
+      resolvedEquipment = undefined
+    } else if (params.equipment_mode === 'saved') {
+      resolvedEquipment = ctx.equipment_available.length > 0 ? ctx.equipment_available : undefined
+    } else {
+      resolvedEquipment = params.equipment_available?.length ? params.equipment_available : undefined
+    }
 
     try {
       const completion = await this.openai.chat.completions.create({
@@ -30,11 +40,14 @@ export class AIHyroxGeneratorService {
               ...params,
               userLevel: ctx.sport_level,
               injuries: ctx.injuries,
+              resolvedEquipment,
+              isOfficialMode: params.equipment_mode === 'official',
+              recentSessionNames,
             }),
           },
         ],
-        temperature: 0.7,
-        max_tokens: 2048,
+        temperature: 0.9,
+        max_tokens: 4096,
         response_format: { type: 'json_object' },
       })
 

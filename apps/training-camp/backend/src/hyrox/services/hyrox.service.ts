@@ -83,12 +83,28 @@ export class HyroxService {
     return session
   }
 
+  private async getRecentAiSessionNames(userId: string): Promise<string[]> {
+    const rows = await this.knex('hyrox_sessions')
+      .where({ user_id: userId, source: 'ai_generated' })
+      .whereNotNull('ai_plan')
+      .orderBy('created_at', 'desc')
+      .limit(3)
+      .select('ai_plan')
+    return rows
+      .map((r) => {
+        try { return (JSON.parse(r.ai_plan) as { name?: string }).name ?? null } catch { return null }
+      })
+      .filter(Boolean) as string[]
+  }
+
   async generatePreview(userId: string, params: GenerateHyroxSessionDto) {
-    return this.aiGenerator.generateHyroxSession(userId, params)
+    const recentNames = await this.getRecentAiSessionNames(userId)
+    return this.aiGenerator.generateHyroxSession(userId, params, recentNames)
   }
 
   async generateAndSave(userId: string, params: GenerateHyroxSessionDto) {
-    const plan = await this.aiGenerator.generateHyroxSession(userId, params)
+    const recentNames = await this.getRecentAiSessionNames(userId)
+    const plan = await this.aiGenerator.generateHyroxSession(userId, params, recentNames)
     const [session] = await this.knex('hyrox_sessions')
       .insert({
         user_id: userId,

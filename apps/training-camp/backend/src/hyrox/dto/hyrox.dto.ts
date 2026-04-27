@@ -18,14 +18,14 @@ export type HyroxStation = typeof HYROX_STATIONS[number]
 
 // Alternatives par station si l'équipement manque
 export const HYROX_ALTERNATIVES: Record<HyroxStation, string[]> = {
-  ski_erg: ['rowing', 'burpees_alt', 'bike_erg'],
-  sled_push: ['prowler_alt', 'bear_crawl', 'farmers_carry_alt'],
-  sled_pull: ['rope_pull', 'band_pull', 'reverse_farmers_carry'],
-  burpee_broad_jumps: ['burpees_standard', 'broad_jumps_only'],
-  rowing: ['ski_erg', 'bike_erg', 'assault_bike'],
-  farmers_carry: ['suitcase_carry', 'sandbag_carry', 'kb_carry'],
-  sandbag_lunges: ['db_lunges', 'barbell_lunges', 'walking_lunges'],
-  wall_balls: ['db_thrusters', 'kb_thrusters', 'box_jumps'],
+  ski_erg: ['Burpees', 'Jumping Jacks', 'Mountain Climbers'],
+  sled_push: ['Squat Jumps', 'Bear Crawl', 'Fentes sautées'],
+  sled_pull: ['Rowing inversé sous table', 'Superman Pulls', 'Tirage élastique'],
+  burpee_broad_jumps: ['Burpees + Broad Jump classique'],
+  rowing: ['High Knees', 'Course sur place', 'Run 400m'],
+  farmers_carry: ['Suitcase Hold statique', 'Marche avec sacs de courses lourds'],
+  sandbag_lunges: ['Walking Lunges', 'Fentes avant longues'],
+  wall_balls: ['Air Squats tempo (3 sec descent)', 'Thrusters poids du corps'],
 }
 
 export class StationTimeDto {
@@ -149,6 +149,10 @@ export class GenerateHyroxSessionDto {
   @Min(20)
   @Max(180)
   duration_minutes!: number
+
+  @IsOptional()
+  @IsEnum(['saved', 'official'])
+  equipment_mode?: 'saved' | 'official'  // 'official' = équipement HYROX complet ; 'saved' = équipement du profil utilisateur
 
   @IsOptional()
   @IsArray()
