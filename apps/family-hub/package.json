@@ -14,10 +14,13 @@
     "build:backend": "npm run build --workspace=apps/backend",
     "lint": "npm run lint --workspaces --if-present",
     "db:migrate": "npm run db:migrate --workspace=apps/backend",
-    "db:seed": "npm run db:seed --workspace=apps/backend"
+    "db:seed": "npm run db:seed --workspace=apps/backend",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:status": "npx supabase status",
+    "supabase:reset": "npx supabase db reset"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0",
     "typescript": "^5.9.3"
   }
 }
