@@ -98,7 +98,6 @@ Guards : `@UseGuards(JwtAuthGuard)` sur toutes les routes protégées — **sans
 | `exercises` | Référentiel d'exercices |
 | `equipments` | Équipements disponibles |
 | `one-rep-maxes` | Maxes et historique |
-| `training-programs` | Programmes structurés multi-semaines |
 | `google-calendar` | Sync agenda Google |
 
 ### Pattern génération IA
@@ -107,7 +106,6 @@ Trois services OpenAI distincts, chacun avec son fichier de prompt et son schém
 
 - `ai-workout-generator.service.ts` — génère les WODs (dans `WorkoutsModule`)
 - `ai-skill-generator.service.ts` — génère les programmes de compétences (dans `SkillsModule`)
-- `ai-program-generator.service.ts` — génère les programmes d'entraînement (dans `TrainingProgramsModule`)
 - `workout-analysis.service.ts` — analyse les sessions post-workout (dans `WorkoutSessionsModule`)
 
 Toutes les interactions OpenAI utilisent `model: 'gpt-4o'`, `response_format: json_object`, et valident la réponse avec Zod. Si l'IA retourne `{"error": "UNKNOWN_WOD"}` sur un lookup de WOD, lever une `BadRequestException`.
@@ -125,7 +123,6 @@ frontend/
 │   │   ├── calendar/
 │   │   ├── dashboard/
 │   │   ├── workouts/
-│   │   ├── training-programs/
 │   │   ├── skills/
 │   │   └── ...
 │   └── (public)/       # Routes publiques (login, signup)
@@ -156,7 +153,7 @@ Un fichier service par domaine : `workouts.ts`, `sessions.ts`, `skills.ts`, `sch
 
 ## Base de données — tables principales
 
-`users`, `exercises`, `equipments`, `user_equipments`, `workouts`, `workout_exercises`, `user_workouts`, `personalized_workouts`, `workout_logs`, `workout_sessions`, `training_programs`, `user_program_enrollments`, `user_workout_schedule`, `one_rep_maxes`, `one_rep_max_history`, `skill_programs`, `skill_program_steps`, `skill_progress_logs`
+`users`, `exercises`, `equipments`, `user_equipments`, `workouts`, `workout_exercises`, `user_workouts`, `personalized_workouts`, `workout_logs`, `workout_sessions`, `user_workout_schedule`, `one_rep_maxes`, `one_rep_max_history`, `skill_programs`, `skill_program_steps`, `skill_progress_logs`
 
 ## Environnement
 

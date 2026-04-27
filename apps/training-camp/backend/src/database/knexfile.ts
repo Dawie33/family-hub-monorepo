@@ -3,7 +3,7 @@ import { resolve, join } from 'path'
 import type { Knex } from 'knex'
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env'
-dotenvConfig({ path: resolve(__dirname, envFile) })
+dotenvConfig({ path: resolve(__dirname, '../..', envFile) })
 
 const config: { [key: string]: Knex.Config } = {
   development: {
