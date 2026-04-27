@@ -67,12 +67,28 @@ export class AthxService {
     return session
   }
 
+  private async getRecentAiSessionNames(userId: string): Promise<string[]> {
+    const rows = await this.knex('athx_sessions')
+      .where({ user_id: userId, source: 'ai_generated' })
+      .whereNotNull('ai_plan')
+      .orderBy('created_at', 'desc')
+      .limit(3)
+      .select('ai_plan')
+    return rows
+      .map((r) => {
+        try { return (JSON.parse(r.ai_plan) as { name?: string }).name ?? null } catch { return null }
+      })
+      .filter(Boolean) as string[]
+  }
+
   async generatePreview(userId: string, params: GenerateAthxSessionDto) {
-    return this.aiGenerator.generateAthxSession(userId, params)
+    const recentNames = await this.getRecentAiSessionNames(userId)
+    return this.aiGenerator.generateAthxSession(userId, params, recentNames)
   }
 
   async generateAndSave(userId: string, params: GenerateAthxSessionDto) {
-    const plan = await this.aiGenerator.generateAthxSession(userId, params)
+    const recentNames = await this.getRecentAiSessionNames(userId)
+    const plan = await this.aiGenerator.generateAthxSession(userId, params, recentNames)
     const scheduledDate = params.scheduled_date ?? new Date().toISOString().slice(0, 10)
 
     const [session] = await this.knex('athx_sessions')

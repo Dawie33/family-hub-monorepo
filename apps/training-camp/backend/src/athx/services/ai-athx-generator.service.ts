@@ -16,11 +16,35 @@ export class AIAthxGeneratorService {
     this.openai = new OpenAI({ apiKey })
   }
 
-  async generateAthxSession(userId: string, params: GenerateAthxSessionDto): Promise<GeneratedAthxPlanValidated> {
+  private pickVariationSeed(recentNames: string[]): string {
+    const axes = [
+      'Accent sur la Zone Force — varie les soulevés et les schémas de répétitions par rapport aux séances précédentes',
+      'Accent sur la Zone Endurance — format cardio pur différent (pas toujours run+row)',
+      'Accent sur le MetCon X — format CHIPPER avec mouvements différents des dernières séances',
+      'Séance force-endurance enchaînée — transitions courtes entre les blocs pour simuler la fatigue compétition',
+      'Volume élevé sur les mouvements olympiques — snatch, clean & jerk, overhead',
+      'Focus métabolique lactique — efforts 85-95%, repos courts, fréquence cardiaque haute',
+      'Séance de vitesse et puissance — charges légères mais mouvements explosifs',
+      'Simulation tactique — adapter le pacing et la stratégie de chaque zone',
+      'Travail des points faibles — exercices accessoires ciblés, mouvements techniques',
+      'Format compétition condensé — toutes les zones en moins de temps, intensité augmentée',
+    ]
+    const idx = (recentNames.length + new Date().getHours()) % axes.length
+    return axes[idx]
+  }
+
+  async generateAthxSession(userId: string, params: GenerateAthxSessionDto, recentSessionNames: string[] = []): Promise<GeneratedAthxPlanValidated> {
     const ctx = await this.userContextService.getUserAIContext(userId)
 
     try {
-      const equipmentAvailable = params.equipment_available ?? ctx.equipment_available
+      const equipmentAvailable = params.equipment_mode === 'official'
+        ? undefined
+        : params.equipment_mode === 'saved'
+          ? (ctx.equipment_available.length > 0 ? ctx.equipment_available : undefined)
+          : (params.equipment_available ?? ctx.equipment_available)
+
+      const variationSeed = this.pickVariationSeed(recentSessionNames)
+
       const completion = await this.openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
@@ -33,11 +57,14 @@ export class AIAthxGeneratorService {
               oneRepMaxes: ctx.oneRepMaxes,
               equipmentAvailable,
               injuries: ctx.injuries,
+              recentSessionNames,
+              variationSeed,
+              trainingLocation: params.equipment_mode === 'official' ? 'Box ATHX' : 'Maison / extérieur',
             }),
           },
         ],
-        temperature: 0.7,
-        max_tokens: 2048,
+        temperature: 0.9,
+        max_tokens: 4096,
         response_format: { type: 'json_object' },
       })
 

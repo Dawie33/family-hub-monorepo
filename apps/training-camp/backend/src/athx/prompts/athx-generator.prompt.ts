@@ -122,6 +122,9 @@ interface AthxUserPromptParams extends GenerateAthxSessionDto {
   oneRepMaxes?: { lift: string; value: number }[]
   equipmentAvailable?: string[]
   injuries?: Record<string, unknown>
+  recentSessionNames?: string[]
+  variationSeed?: string
+  trainingLocation?: string
 }
 
 export function buildAthxUserPrompt(params: AthxUserPromptParams): string {
@@ -158,6 +161,18 @@ export function buildAthxUserPrompt(params: AthxUserPromptParams): string {
 
   if (params.additional_instructions) {
     prompt += `\n- Instructions : ${params.additional_instructions}`
+  }
+
+  if (params.trainingLocation) {
+    prompt += `\n- Lieu d'entraînement : ${params.trainingLocation}`
+  }
+
+  if (params.recentSessionNames && params.recentSessionNames.length > 0) {
+    prompt += `\n\nSéances déjà générées récemment (à NE PAS reproduire) : ${params.recentSessionNames.join(' | ')}\nVarie les mouvements, zones ciblées, formats et exercices accessoires par rapport à ces séances.`
+  }
+
+  if (params.variationSeed) {
+    prompt += `\n\nDirective de variation — axe prioritaire pour cette séance : ${params.variationSeed}`
   }
 
   return prompt

@@ -92,6 +92,10 @@ export class GenerateAthxSessionDto {
   level?: string
 
   @IsOptional()
+  @IsEnum(['saved', 'official'])
+  equipment_mode?: 'saved' | 'official'  // 'official' = box ATHX complète ; 'saved' = équipement du profil
+
+  @IsOptional()
   @IsString()
   target_zones?: string   // ex: "force et endurance"
 

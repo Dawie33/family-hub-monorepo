@@ -1,13 +1,16 @@
 import { z } from 'zod'
 
+const nullableString = z.string().nullable().optional().transform((v) => v ?? undefined)
+const nullableNumber = z.number().nullable().optional().transform((v) => v ?? undefined)
+
 export const AthxExerciseSchema = z.object({
   name: z.string().min(1),
-  sets: z.number().int().positive().optional(),
-  reps: z.union([z.number(), z.string()]).optional(),
-  duration: z.string().optional(),    // ex: "3 min"
-  rest: z.string().optional(),
-  intensity: z.string().optional(),   // ex: "RPE 8", "80% 1RM"
-  notes: z.string().optional(),
+  sets: nullableNumber.pipe(z.number().int().positive().optional()),
+  reps: z.union([z.number(), z.string()]).nullable().optional().transform((v) => v ?? undefined),
+  duration: nullableString,
+  rest: nullableString,
+  intensity: nullableString,
+  notes: nullableString,
 })
 
 export const AthxBlockSchema = z.object({
