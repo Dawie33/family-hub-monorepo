@@ -12,7 +12,6 @@ import { PdfModule } from './pdf/pdf.module'
 import { WeatherModule } from './weather/weather.module'
 import { RecipesModule } from './recipes/recipes.module'
 import { TrainingCampModule } from './training-camp/training-camp.module'
-import { RecipeAiModule } from './recipe-ai/recipe-ai.module'
 import { ShoppingModule } from './shopping/shopping.module'
 import { FcmModule } from './fcm/fcm.module'
 import { GmailModule } from './gmail/gmail.module'
@@ -35,7 +34,6 @@ import { GmailModule } from './gmail/gmail.module'
     WeatherModule,
     RecipesModule,
     TrainingCampModule,
-    RecipeAiModule,
     ShoppingModule,
     FcmModule,
     GmailModule,

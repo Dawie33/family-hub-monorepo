@@ -18,7 +18,8 @@ import { SearchService } from './services/search.service'
 import { RecipeExtractorService } from './services/recipe-extractor.service'
 import { FcmService } from '../fcm/fcm.service'
 import { TrainingCampClient } from '../training-camp/training-camp.service'
-import { RecipeAiClient } from '../recipe-ai/recipe-ai.service'
+import { RecipeGenerationService } from '../recipes/recipe-generation.service'
+import { RecipesService } from '../recipes/recipes.service'
 import { SupabaseService } from '../database/supabase.service'
 
 // ─── Sets de noms d'outils pour routage ──────────────────────────────────────
@@ -102,7 +103,8 @@ export class ChatService {
     private searchService: SearchService,
     private memoryService: MemoryService,
     private trainingCampClient: TrainingCampClient,
-    private recipeAiClient: RecipeAiClient,
+    private recipeGenerationService: RecipeGenerationService,
+    private recipesService: RecipesService,
     private supabase: SupabaseService,
     private recipeExtractorService: RecipeExtractorService,
     private fcmService: FcmService,
@@ -129,11 +131,6 @@ export class ChatService {
       } catch {
         systemPrompt += '\n\n## Training Camp\nConnexion indisponible en ce moment.'
       }
-    }
-
-    // Statut Recipe AI
-    if (!this.recipeAiClient.isConfigured) {
-      systemPrompt += "\n\n## Recipe AI\nNon configuré — génère les recettes par toi-même sans appeler les outils Recipe AI."
     }
 
     // 2. Recherche web si pertinent (pré-LLM, basée sur mots-clés)
@@ -226,9 +223,7 @@ export class ChatService {
       PUSH_NOTIFICATION_TOOL,
     ]
 
-    if (this.recipeAiClient.isConfigured) {
-      tools.push(...RECIPE_AI_TOOLS)
-    }
+    tools.push(...RECIPE_AI_TOOLS)
 
     if (this.trainingCampClient.isConfigured) {
       tools.push(...TRAINING_CAMP_TOOLS)
@@ -353,7 +348,7 @@ export class ChatService {
         if (!ingredients || (ingredients as string[]).length === 0) {
           ingredients = ['poulet', 'légumes de saison']
         }
-        return this.recipeAiClient.generateRecipe({
+        return this.recipeGenerationService.generateRecipe({
           ingredients: ingredients as string[],
           filters: args.filters as string[] | undefined,
           platTypes: args.platTypes as string[] | undefined,
@@ -362,7 +357,7 @@ export class ChatService {
         })
       }
       case 'generate_meal_plan':
-        return this.recipeAiClient.generateMealPlan({
+        return this.recipeGenerationService.generateMealPlan({
           numberOfMeals: args.numberOfMeals as number,
           numberOfPeople: (args.numberOfPeople as number) || 4,
           filters: args.filters as string[] | undefined,
@@ -370,15 +365,17 @@ export class ChatService {
           maxDuration: args.maxDuration as string | undefined,
         })
       case 'get_saved_recipes':
-        return this.recipeAiClient.getSavedRecipes()
-      case 'save_recipe_to_recipeai':
-        return this.recipeAiClient.saveRecipe({
+        return this.recipesService.findAll()
+      case 'save_recipe_to_recipeai': {
+        const steps = args.steps as string[]
+        const rawIngredients = args.ingredients as string[]
+        return this.recipesService.create({
           title: args.title as string,
-          ingredients: args.ingredients as string[],
-          steps: args.steps as string[],
-          duration: args.duration as string,
-          difficulty: args.difficulty as 'débutant' | 'intermédiaire' | 'chef',
+          ingredients: rawIngredients.map(item => ({ item })),
+          instructions: steps.join('\n'),
+          source: 'chat',
         })
+      }
       default:
         return { error: `Outil nutrition inconnu: ${call.name}` }
     }
@@ -467,13 +464,12 @@ export class ChatService {
 
     const recipe = await this.recipeExtractorService.extractFromUrl(url as string)
 
-    if (save && this.recipeAiClient.isConfigured) {
-      await this.recipeAiClient.saveRecipe({
+    if (save) {
+      await this.recipesService.create({
         title: recipe.title,
-        ingredients: recipe.ingredients,
-        steps: recipe.steps,
-        duration: recipe.duration,
-        difficulty: recipe.difficulty,
+        ingredients: (recipe.ingredients as string[]).map(item => ({ item })),
+        instructions: (recipe.steps as string[]).join('\n'),
+        source: 'chat',
       })
       return { ...recipe, saved: true }
     }
@@ -489,15 +485,12 @@ export class ChatService {
     // Sauvegarde des recettes — PDF annulé si une échoue
     const saveResults = await Promise.allSettled(
       recipes.map((recipe: any) =>
-        this.recipeAiClient.saveRecipe({
+        this.recipesService.create({
           title: recipe.title,
-          ingredients: recipe.ingredients,
-          steps: recipe.steps,
-          duration: recipe.duration,
-          difficulty: recipe.difficulty,
-          nutrition: recipe.nutrition,
-          filters: recipe.filters,
-          cuisine_type: recipe.cuisine_type,
+          ingredients: (recipe.ingredients as string[]).map((item: string) => ({ item })),
+          instructions: (recipe.steps as string[]).join('\n'),
+          source: 'chat',
+          tags: recipe.filters ?? [],
         }),
       ),
     )

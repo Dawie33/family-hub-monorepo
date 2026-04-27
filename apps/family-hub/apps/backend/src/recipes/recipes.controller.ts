@@ -1,16 +1,36 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import { MealPlansService } from './meal-plans.service';
+import { RecipeGenerationService } from './recipe-generation.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { SetMealPlanItemDto } from './dto/meal-plan.dto';
+import { GenerateRecipeDto } from './dto/generate-recipe.dto';
+import { GenerateMealPlanDto } from './dto/generate-meal-plan.dto';
+import { SubstituteDto } from './dto/substitute.dto';
 
 @Controller('recipes')
 export class RecipesController {
   constructor(
     private readonly recipesService: RecipesService,
     private readonly mealPlansService: MealPlansService,
+    private readonly recipeGenerationService: RecipeGenerationService,
   ) {}
+
+  @Post('generate')
+  generate(@Body() dto: GenerateRecipeDto) {
+    return this.recipeGenerationService.generateRecipe(dto);
+  }
+
+  @Post('meal-plan')
+  generateMealPlan(@Body() dto: GenerateMealPlanDto) {
+    return this.recipeGenerationService.generateMealPlan(dto);
+  }
+
+  @Post('substitute')
+  substitute(@Body() dto: SubstituteDto) {
+    return this.recipeGenerationService.suggestSubstitute(dto.ingredient, dto.recipeTitle);
+  }
 
   @Post()
   create(@Body() createRecipeDto: CreateRecipeDto) {

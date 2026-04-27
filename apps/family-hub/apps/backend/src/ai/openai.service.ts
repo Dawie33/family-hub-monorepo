@@ -120,6 +120,17 @@ export class OpenAIService {
     }
   }
 
+  async chatJson<T>(messages: ChatMessage[], modelName: string = 'gpt-4o'): Promise<T> {
+    const response = await this.client.chat.completions.create({
+      model: modelName,
+      messages: messages as ChatCompletionMessageParam[],
+      response_format: { type: 'json_object' },
+    });
+    const content = response.choices[0]?.message?.content;
+    if (!content) throw new Error('Réponse vide du modèle OpenAI');
+    return JSON.parse(content) as T;
+  }
+
   /**
    * Génère une image avec DALL-E 3
    * @param prompt - Description de l'image à générer
