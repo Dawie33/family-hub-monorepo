@@ -46,9 +46,20 @@ export interface UserAIContext {
 
 @Injectable()
 export class UserContextService {
+  private readonly cache = new Map<string, { data: UserAIContext; expiresAt: number }>()
+  private readonly TTL_MS = 30 * 60 * 1000
+
   constructor(@InjectModel() private readonly knex: Knex) {}
 
+  invalidateCache(userId: string): void {
+    this.cache.delete(userId)
+  }
+
   async getUserAIContext(userId: string): Promise<UserAIContext> {
+    const cached = this.cache.get(userId)
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data
+    }
     const [profile, oneRepMaxes, recentSessions, recentAnalysesRaw, activeSkillsRaw] = await Promise.all([
       this.knex('users')
         .select(
@@ -174,7 +185,7 @@ export class UserContextService {
       }),
     )
 
-    return {
+    const result: UserAIContext = {
       sport_level: profile?.sport_level ?? 'intermediate',
       height: profile?.height ?? undefined,
       weight: profile?.weight ?? undefined,
@@ -189,5 +200,8 @@ export class UserContextService {
       recentAnalyses,
       activeSkills,
     }
+
+    this.cache.set(userId, { data: result, expiresAt: Date.now() + this.TTL_MS })
+    return result
   }
 }
