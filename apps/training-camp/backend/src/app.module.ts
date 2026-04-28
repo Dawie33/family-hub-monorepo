@@ -19,6 +19,7 @@ import { ScheduledActivitiesModule } from './scheduled-activities/scheduled-acti
 import { RunningModule } from './running/running.module'
 import { AthxModule } from './athx/athx.module'
 import { HyroxModule } from './hyrox/hyrox.module'
+import { StrengthModule } from './strength/strength.module'
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { HyroxModule } from './hyrox/hyrox.module'
     RunningModule,
     AthxModule,
     HyroxModule,
+    StrengthModule,
   ],
   providers: [
     {

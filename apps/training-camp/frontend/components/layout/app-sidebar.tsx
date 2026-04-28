@@ -22,6 +22,7 @@ import {
   Trophy,
   Zap,
 } from 'lucide-react'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -70,6 +71,7 @@ export function AppSidebar({ isOpen }: isSidebarOpen) {
         { href: '/running', label: 'Running', icon: <Footprints className="w-5 h-5" /> },
         { href: '/hyrox', label: 'HYROX', icon: <Trophy className="w-5 h-5" /> },
         { href: '/athx', label: 'ATHX', icon: <Zap className="w-5 h-5" /> },
+        { href: '/strength', label: 'Force', icon: <Dumbbell className="w-5 h-5" /> },
       ],
     },
   ]

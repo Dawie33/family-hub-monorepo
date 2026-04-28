@@ -25,6 +25,7 @@ const moreItems: NavItem[] = [
   { href: '/running', label: 'Running', icon: Footprints },
   { href: '/hyrox', label: 'HYROX', icon: Trophy },
   { href: '/athx', label: 'ATHX', icon: Zap },
+  { href: '/strength', label: 'Force', icon: Dumbbell },
 ]
 
 export function BottomNavigation() {
