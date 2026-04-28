@@ -48,6 +48,6 @@ export class UnifiedActivityQueryDto {
   status?: string
 
   @IsOptional()
-  @IsEnum(['crossfit', 'hyrox', 'running', 'athx'])
-  module?: 'crossfit' | 'hyrox' | 'running' | 'athx'
+  @IsEnum(['crossfit', 'hyrox', 'running', 'athx', 'strength'])
+  module?: 'crossfit' | 'hyrox' | 'running' | 'athx' | 'strength'
 }

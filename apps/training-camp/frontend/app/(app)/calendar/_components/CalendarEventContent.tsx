@@ -10,6 +10,7 @@ export const moduleBadges: Record<string, { label: string; color: string }> = {
   hyrox: { label: 'HYROX', color: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' },
   running: { label: 'RUN', color: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' },
   athx: { label: 'ATHX', color: 'bg-purple-500/20 text-purple-400 border border-purple-500/30' },
+  strength: { label: 'FORCE', color: 'bg-violet-500/20 text-violet-400 border border-violet-500/30' },
 }
 
 export function CustomEventContent({ calendarEvent }: { calendarEvent: Record<string, unknown> }) {

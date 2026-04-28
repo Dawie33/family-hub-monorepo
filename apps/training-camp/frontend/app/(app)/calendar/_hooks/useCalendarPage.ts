@@ -81,6 +81,7 @@ export function useCalendarPage() {
     hyrox: 'hyrox',
     running: 'running',
     athx: 'athx',
+    strength: 'strength',
   }
 
   const mapSchedulesToEvents = useCallback((scheduleList: UnifiedActivity[]) => {
@@ -110,9 +111,13 @@ export function useCalendarPage() {
         activity_id: schedule.activity_id,
         session_data: schedule.session_data,
         _source: schedule._source,
-        _onComplete: () => { markAsCompleted(schedule.id); setSelectedEvent(null) },
-        _onSkip: () => { markAsSkipped(schedule.id); setSelectedEvent(null) },
-        _onDelete: () => {
+        target_muscles: schedule.target_muscles,
+        session_goal: schedule.session_goal,
+        duration_minutes: schedule.duration_minutes,
+        perceived_effort: schedule.perceived_effort,
+        _onComplete: schedule._source === 'strength_sessions' ? undefined : () => { markAsCompleted(schedule.id); setSelectedEvent(null) },
+        _onSkip: schedule._source === 'strength_sessions' ? undefined : () => { markAsSkipped(schedule.id); setSelectedEvent(null) },
+        _onDelete: schedule._source === 'strength_sessions' ? undefined : () => {
           if (confirm('Voulez-vous vraiment supprimer cette planification ?')) {
             deleteSchedule(schedule.id)
             setSelectedEvent(null)

@@ -1,6 +1,6 @@
 import { apiClient } from './index'
 
-export type ActivityModule = 'crossfit' | 'hyrox' | 'running' | 'athx'
+export type ActivityModule = 'crossfit' | 'hyrox' | 'running' | 'athx' | 'strength'
 export type ActivityStatus = 'scheduled' | 'completed' | 'skipped' | 'rescheduled'
 
 /**
@@ -35,12 +35,18 @@ export interface UnifiedActivity {
   activity_type?: 'hyrox' | 'running' | 'athx'
   activity_id?: string
 
+  // Champs Force
+  target_muscles?: string[]
+  session_goal?: string
+  duration_minutes?: number
+  perceived_effort?: number
+
   // Identifie la table source pour les actions CRUD
-  _source: 'workout_schedule' | 'scheduled_activities'
+  _source: 'workout_schedule' | 'scheduled_activities' | 'strength_sessions'
 }
 
 export interface CreateActivityDto {
-  activity_type: 'hyrox' | 'running' | 'athx'
+  activity_type: 'hyrox' | 'running' | 'athx' | 'strength'
   scheduled_date: string
   activity_id?: string
   notes?: string

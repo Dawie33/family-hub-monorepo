@@ -112,6 +112,44 @@ export class ScheduledActivitiesService {
       }
     }
 
+    // --- Force (strength_sessions) ---
+    // Les séances de force sont toujours réalisées (status = completed)
+    if (!moduleFilter || moduleFilter === 'strength') {
+      if (!status || status === 'completed') {
+        let ssQuery = this.knex('strength_sessions').where('user_id', userId)
+
+        if (start_date) ssQuery = ssQuery.where('session_date', '>=', start_date)
+        if (end_date) ssQuery = ssQuery.where('session_date', '<=', end_date)
+
+        const ssRows = await ssQuery.orderBy('session_date', 'asc')
+
+        for (const row of ssRows) {
+          const muscles: string[] = Array.isArray(row.target_muscles) ? row.target_muscles : []
+          const muscleLabel = muscles.slice(0, 2).join(', ')
+          const title = muscleLabel ? `Force — ${muscleLabel}` : 'Séance Force'
+
+          activities.push({
+            id: row.id,
+            user_id: row.user_id,
+            scheduled_date: typeof row.session_date === 'string'
+              ? row.session_date.slice(0, 10)
+              : new Date(row.session_date).toISOString().slice(0, 10),
+            module: 'strength',
+            status: 'completed',
+            title,
+            notes: row.notes ?? undefined,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            target_muscles: muscles,
+            session_goal: row.session_goal,
+            duration_minutes: row.duration_minutes ?? undefined,
+            perceived_effort: row.perceived_effort ?? undefined,
+            _source: 'strength_sessions',
+          })
+        }
+      }
+    }
+
     // Tri global par date
     return activities.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
   }
