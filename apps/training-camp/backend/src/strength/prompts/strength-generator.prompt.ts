@@ -100,18 +100,59 @@ export function buildStrengthUserPrompt(params: {
   userLevel: string
   availableEquipment: string[]
   recentMusclesWorked?: string[]
+  recentStrengthSessions?: {
+    session_date: string
+    session_goal: string
+    target_muscles: string[]
+    perceived_effort?: number
+    duration_minutes?: number
+  }[]
+  oneRepMaxes?: { lift: string; value: number }[]
+  injuries?: Record<string, unknown>
+  physicalLimitations?: Record<string, unknown>
   additionalContext?: string
 }): string {
   const equipmentStr = params.availableEquipment.length > 0
     ? params.availableEquipment.join(', ')
     : 'poids de corps uniquement'
 
+  // Historique des 5 dernières séances de force
+  let historyStr = ''
+  if (params.recentStrengthSessions && params.recentStrengthSessions.length > 0) {
+    const lines = params.recentStrengthSessions.map(s => {
+      const muscles = s.target_muscles.join(', ') || '—'
+      const rpe = s.perceived_effort ? ` · RPE ${s.perceived_effort}` : ''
+      const duration = s.duration_minutes ? ` · ${s.duration_minutes} min` : ''
+      return `  - ${s.session_date} : ${s.session_goal} — ${muscles}${rpe}${duration}`
+    })
+    historyStr = `\n\nHistorique des dernières séances Force :\n${lines.join('\n')}\n→ Adapte le volume et l'intensité en tenant compte de la fatigue cumulée.`
+  }
+
+  // Muscles récemment travaillés à ménager
   const recentStr = params.recentMusclesWorked && params.recentMusclesWorked.length > 0
-    ? `\nGroupes musculaires travaillés récemment (à ménager) : ${params.recentMusclesWorked.join(', ')}`
+    ? `\nGroupes musculaires sollicités récemment (à ménager) : ${params.recentMusclesWorked.join(', ')}`
     : ''
 
+  // 1RM disponibles pour calibrer les charges
+  let maxStr = ''
+  if (params.oneRepMaxes && params.oneRepMaxes.length > 0) {
+    const lines = params.oneRepMaxes.map(m => `  - ${m.lift} : ${m.value} kg`)
+    maxStr = `\n\n1RM mesurés (utilise-les pour suggérer des intensités en % ou charge absolue) :\n${lines.join('\n')}`
+  }
+
+  // Blessures et limitations physiques
+  const injuryKeys = Object.keys(params.injuries ?? {})
+  const limitKeys = Object.keys(params.physicalLimitations ?? {})
+  let safetyStr = ''
+  if (injuryKeys.length > 0 || limitKeys.length > 0) {
+    const parts: string[] = []
+    if (injuryKeys.length > 0) parts.push(`Blessures : ${injuryKeys.join(', ')}`)
+    if (limitKeys.length > 0) parts.push(`Limitations physiques : ${limitKeys.join(', ')}`)
+    safetyStr = `\n\n⚠️ Contraintes de sécurité — OBLIGATOIRE de respecter :\n${parts.map(p => `  - ${p}`).join('\n')}\n→ Évite les exercices qui sollicitent ces zones ou propose des variantes adaptées.`
+  }
+
   const contextStr = params.additionalContext
-    ? `\nContexte supplémentaire : ${params.additionalContext}`
+    ? `\n\nInstructions supplémentaires : ${params.additionalContext}`
     : ''
 
   return `Génère une séance de force avec les paramètres suivants :
@@ -119,7 +160,7 @@ export function buildStrengthUserPrompt(params: {
 Groupes musculaires ciblés : ${params.targetMuscles.join(', ')}
 Objectif : ${params.sessionGoal}
 Niveau de l'athlète : ${params.userLevel}
-Matériel disponible : ${equipmentStr}${recentStr}${contextStr}
+Matériel disponible : ${equipmentStr}${recentStr}${historyStr}${maxStr}${safetyStr}${contextStr}
 
 Génère une séance complète et cohérente au format JSON demandé.`
 }

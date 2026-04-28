@@ -3,6 +3,7 @@ import { Knex } from 'knex'
 import { InjectModel } from 'nest-knexjs'
 import OpenAI from 'openai'
 import { ZodError } from 'zod'
+import { UserContextService } from '../../workouts/services/user-context.service'
 import { GenerateStrengthSessionDto } from '../dto/strength.dto'
 import { buildStrengthSystemPrompt, buildStrengthUserPrompt } from '../prompts/strength-generator.prompt'
 import {
@@ -14,7 +15,10 @@ import {
 export class AIStrengthGeneratorService {
   private openai: OpenAI
 
-  constructor(@InjectModel() private readonly knex: Knex) {
+  constructor(
+    @InjectModel() private readonly knex: Knex,
+    private readonly userContextService: UserContextService,
+  ) {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       throw new Error('OPENAI_API_KEY environment variable is not set')
@@ -23,29 +27,26 @@ export class AIStrengthGeneratorService {
   }
 
   async generateSession(userId: string, dto: GenerateStrengthSessionDto): Promise<GeneratedStrengthSession> {
-    const [profile, recentSessions] = await Promise.all([
-      this.knex('users')
-        .select('sport_level', 'equipment_available')
-        .where('id', userId)
-        .first(),
+    const [ctx, recentStrengthSessions] = await Promise.all([
+      this.userContextService.getUserAIContext(userId),
       this.knex('strength_sessions')
-        .select('target_muscles', 'session_date')
+        .select('target_muscles', 'session_date', 'session_goal', 'perceived_effort', 'duration_minutes')
         .where('user_id', userId)
         .orderBy('session_date', 'desc')
-        .limit(3),
+        .limit(5),
     ])
 
-    const userLevel = dto.userLevel ?? profile?.sport_level ?? 'intermediate'
+    const userLevel = dto.userLevel ?? ctx.sport_level ?? 'intermediate'
 
     // Équipements : ceux du DTO en priorité, sinon profil utilisateur
     const availableEquipment =
       dto.availableEquipment && dto.availableEquipment.length > 0
         ? dto.availableEquipment
-        : (profile?.equipment_available ?? [])
+        : ctx.equipment_available
 
     // Muscles récemment travaillés pour éviter la surcharge
     const recentMusclesWorked: string[] = []
-    for (const s of recentSessions) {
+    for (const s of recentStrengthSessions) {
       const muscles = Array.isArray(s.target_muscles) ? s.target_muscles : []
       recentMusclesWorked.push(...muscles)
     }
@@ -58,6 +59,16 @@ export class AIStrengthGeneratorService {
         userLevel,
         availableEquipment,
         recentMusclesWorked: [...new Set(recentMusclesWorked)],
+        recentStrengthSessions: recentStrengthSessions.map(s => ({
+          session_date: s.session_date,
+          session_goal: s.session_goal,
+          target_muscles: Array.isArray(s.target_muscles) ? s.target_muscles : [],
+          perceived_effort: s.perceived_effort ?? undefined,
+          duration_minutes: s.duration_minutes ?? undefined,
+        })),
+        oneRepMaxes: ctx.oneRepMaxes,
+        injuries: ctx.injuries,
+        physicalLimitations: ctx.physical_limitations,
         additionalContext: dto.additionalContext,
       })
 
