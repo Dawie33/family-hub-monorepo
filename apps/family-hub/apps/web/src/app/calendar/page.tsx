@@ -7,7 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { useFamilyStore } from '@/stores/familyStore';
-import { EventCategory } from '@/lib/supabase';
+import { CalendarEvent, EventCategory } from '@/lib/supabase';
 
 const CATEGORY_COLORS: Record<EventCategory, string> = {
   school:      '#4784EC',

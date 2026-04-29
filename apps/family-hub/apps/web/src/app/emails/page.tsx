@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 interface EmailTask {
@@ -19,11 +19,7 @@ export default function EmailsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'task' | 'note'>('all')
 
-  useEffect(() => {
-    loadItems()
-  }, [])
-
-  async function loadItems() {
+  const loadItems = useCallback(async () => {
     const supabase = createSupabaseBrowserClient()
     const { data } = await supabase
       .from('email_tasks')
@@ -31,7 +27,11 @@ export default function EmailsPage() {
       .order('created_at', { ascending: false })
     setItems((data as EmailTask[]) ?? [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    void loadItems() // eslint-disable-line react-hooks/set-state-in-effect
+  }, [loadItems])
 
   async function toggleDone(item: EmailTask) {
     if (item.type !== 'task') return

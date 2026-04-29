@@ -3,7 +3,7 @@ import { Open_Sans, Nunito } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 import AuthProvider from "@/components/AuthProvider";
-import PushNotificationSetup from "@/components/PushNotificationSetup";
+import PushNotificationLazy from "@/components/PushNotificationLazy";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="fr" className="h-full">
       <body className={`${openSans.variable} ${nunito.variable} h-full`}>
         <AuthProvider>
-          <PushNotificationSetup />
+          <PushNotificationLazy />
           <AppShell>
             {children}
           </AppShell>

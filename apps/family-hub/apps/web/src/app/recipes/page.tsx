@@ -352,7 +352,7 @@ export default function RecipesPage() {
   }, []);
 
   function toggleId(id: string) {
-    setSelectedIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+    setSelectedIds((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
   }
 
   function exitSelectionMode() { setSelectionMode(false); setSelectedIds(new Set()); }
@@ -369,7 +369,7 @@ export default function RecipesPage() {
   const groups = useMemo(() => groupByDay(recipes), [recipes]);
 
   const sortedFiltered = useMemo(() => {
-    let list = diffFilter ? recipes.filter((r) => r.difficulty === diffFilter) : [...recipes];
+    const list = diffFilter ? recipes.filter((r) => r.difficulty === diffFilter) : [...recipes];
     switch (sort) {
       case 'title':    list.sort((a, b) => a.title.localeCompare(b.title)); break;
       case 'duration': list.sort((a, b) => parseDurationMinutes(a.duration) - parseDurationMinutes(b.duration)); break;

@@ -44,7 +44,7 @@ const MODULE_CARDS = [
 export default function HomeScreen() {
   const family = useFamilyStore((s) => s.family);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
-  const [meals, setMeals] = useState<Recipe[]>([]);
+  const [meals, setMeals] = useState<(Recipe & { id?: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

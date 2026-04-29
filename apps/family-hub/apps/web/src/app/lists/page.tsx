@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { getShoppingLists, getShoppingItems, ShoppingList, ShoppingItem } from '@/lib/recipeAiApi';
 import { useFamilyStore } from '@/stores/familyStore';
 
@@ -17,6 +17,12 @@ export default function ListsPage() {
     if (!family) fetchFamily().catch(() => {});
   }, []);
 
+  const selectList = useCallback(async (list: ShoppingList) => {
+    setSelectedList(list);
+    setLoadingItems(true);
+    getShoppingItems(list.id).then(setItems).finally(() => setLoadingItems(false));
+  }, []);
+
   useEffect(() => {
     getShoppingLists(family?.id)
       .then(data => {
@@ -24,13 +30,7 @@ export default function ListsPage() {
         if (data.length > 0) selectList(data[0]);
       })
       .finally(() => setLoadingLists(false));
-  }, [family?.id]);
-
-  async function selectList(list: ShoppingList) {
-    setSelectedList(list);
-    setLoadingItems(true);
-    getShoppingItems(list.id).then(setItems).finally(() => setLoadingItems(false));
-  }
+  }, [family?.id, selectList]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, ShoppingItem[]>();

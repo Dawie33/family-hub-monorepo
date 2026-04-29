@@ -1,25 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 const STORAGE_KEY = 'notif-banner-dismissed'
 
 export default function PushNotificationSetup() {
   const { permission, requestPermission } = usePushNotifications()
-  const [visible, setVisible] = useState(false)
+  const [dismissed, setDismissed] = useState(
+    () => typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY) === 'true'
+  )
 
-  useEffect(() => {
-    if (permission !== 'default') return
-    const alreadyDismissed = localStorage.getItem(STORAGE_KEY) === 'true'
-    if (!alreadyDismissed) setVisible(true)
-  }, [permission])
+  const visible = permission === 'default' && !dismissed
 
   if (!visible) return null
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, 'true')
-    setVisible(false)
+    setDismissed(true)
   }
 
   const handleActivate = async () => {

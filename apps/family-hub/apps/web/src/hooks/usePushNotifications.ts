@@ -18,13 +18,16 @@ async function showNotification(title: string, body?: string) {
 }
 
 export function usePushNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>('default')
+  const [permission, setPermission] = useState<NotificationPermission>(
+    typeof window !== 'undefined' && 'Notification' in window
+      ? Notification.permission
+      : 'default'
+  )
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('Notification' in window)) return
-    setPermission(Notification.permission)
 
     // Si permission déjà accordée, réenregistre le listener onMessage au rechargement
     if (Notification.permission === 'granted' && VAPID_KEY) {
