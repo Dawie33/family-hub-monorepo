@@ -103,6 +103,7 @@ export const WORKOUT_TYPES = {
     { value: 'technique_metcon', label: 'MetCon' },
     { value: 'strength_max', label: 'Force Max (RM)' },
     { value: 'conditioning', label: 'Conditioning' },
+    { value: 'vo2max', label: 'VO2max (intervalles cardio)' },
     { value: 'benchmark', label: 'Benchmark (Fran, Murph, etc.)' },
     { value: 'mixed', label: 'Mixte / Varié' },
   ]

@@ -369,6 +369,45 @@ Exemple :
 5. **Cohérence** : Le workout doit être cohérent avec le workout_type choisi
 6. **Durée réaliste** : Total 30-60 minutes incluant warmup/cooldown
 
+## 9. PROTOCOLES VO2MAX
+
+Pour workout_type "vo2max" — objectif : travailler à 90-100%+ de la consommation maximale d'oxygène.
+
+**Règle clé** : le VO2max s'améliore en travaillant à haute intensité (85-100% FCmax, RPE 8-10/10). La récupération entre intervalles est active (pas de repos complet) pour maintenir un flux sanguin élevé.
+
+### Protocole Billat 30/30 (recommandé débutant/intermédiaire)
+- 30s à 100-110% vVO2max (effort maximal soutenu) + 30s récupération active (50-60% FCmax)
+- Répéter 10 à 20 fois
+- Modalité idéale : Assault Bike, Rower, Ski Erg, ou Run
+- Format section : tableau d'intervalles EMOM-style
+- Exemple stimulus : "10 répétitions 30/30 sur le rower. Sprint maximal 30s, récupération douce 30s. Cadence >30 SPM au sprint. RPE 9-10 au sprint, 4-5 en récup."
+
+### Protocole Norvégien 4×4 min (optimal pour gain VO2max — Helgerud)
+- 4 intervalles de 4 min à 90-95% FCmax (effort très intense mais soutenable 4 min)
+- 3 min récupération active entre chaque (50-60% FCmax)
+- Durée hors warmup/cooldown : 28 min (4×4 + 3×3)
+- Modalité : Rower, Run, Assault Bike, Ski Erg
+- Exemple stimulus : "4×4 min à haute intensité (90-95% FCmax), 3 min récupération active. Rythme difficile mais constant — pas de sprint, maintenir le pace sur les 4 min."
+
+### Tabata Cardio (très court, très intense)
+- 8 rounds : 20s effort maximal / 10s repos complet
+- 4 min totales, à répéter 2-4x avec 2-3 min de récupération entre séries
+- Modalité : Assault Bike (idéal), Burpees, Box Jumps, Air Squats
+- Impact VO2max si et seulement si l'effort est maximal (RPE 10/10)
+
+### Protocole 3×5 min (intermédiaire/avancé, bon signal d'adaptation)
+- 3 répétitions de 5 min à ~vVO2max (pace intense mais tenu sur 5 min)
+- 5 min récupération active entre chaque
+- Durée hors warmup/cooldown : ~25 min (3×5 + 2×5)
+- Modalité : Run, Rower, Ski Erg
+
+**Structure obligatoire d'une session VO2max :**
+1. **Warmup** (10-12 min) : montée progressive de FC, finir avec 2-3 accélérations courtes
+2. **Bloc intervalles** (20-28 min) : le protocole choisi, section type "conditioning"
+3. **Cooldown** (5-8 min) : retour au calme progressif, pas d'étirements statiques profonds
+
+Dans le champ "exercises" des intervalles : utiliser "duration" pour la durée de l'effort et "rest_between_rounds" (secondes) pour la récupération. Préciser toujours : modalité cardio, intensité cible (%FCmax ou RPE), et le nombre de répétitions dans "rounds".
+
 ## 9. CALCUL DE DURÉE (CRITIQUE)
 
 Calcule \`duration_min\` de chaque section depuis le bas — ne jamais distribuer le temps restant arbitrairement.
@@ -547,7 +586,8 @@ export function buildCrossFitWorkoutPrompt(params: CrossFitWorkoutParams): strin
     'conditioning': 'MetCon haute intensité orienté conditionnement',
     'strength_accessory': 'Force avec volume + mouvements accessoires',
     'benchmark': `Benchmark CrossFit officiel${benchmarkName ? ` : ${benchmarkName}` : ''}`,
-    'mixed': 'Workout varié mélangeant plusieurs éléments'
+    'mixed': 'Workout varié mélangeant plusieurs éléments',
+    'vo2max': 'Intervalles cardio haute intensité pour améliorer la VO2max',
   }
 
   let prompt = `Génère un WOD CrossFit avec les paramètres suivants :
@@ -575,6 +615,30 @@ ${additionalInstructions ? `\n**Instructions additionnelles** : ${additionalInst
   } else if (workoutType === 'mixed') {
     const format = pickRandomFormat()
     prompt += `\n**Format MetCon imposé : ${format}** — utilise ce format pour le MetCon principal. Varie les modalités (M-G-W).`
+  } else if (workoutType === 'vo2max') {
+    const vo2maxProtocols = ['billat_30_30', 'norwegian_4x4', 'tabata_cardio', '3x5min'] as const
+    const protocol = vo2maxProtocols[Math.floor(Math.random() * vo2maxProtocols.length)]
+    const protocolDescriptions: Record<string, string> = {
+      'billat_30_30': 'Billat 30/30 — 30s sprint maximal / 30s récupération active, 10-15 répétitions',
+      'norwegian_4x4': 'Norvégien 4×4 min — 4 intervalles de 4 min à 90-95% FCmax, 3 min récup active',
+      'tabata_cardio': 'Tabata Cardio — 8 rounds 20s max / 10s repos, répété 2-3x',
+      '3x5min': '3×5 min à vVO2max avec 5 min récupération active entre chaque',
+    }
+    prompt += `
+**Protocole VO2max imposé : ${protocolDescriptions[protocol]}**
+
+Structure obligatoire :
+1. Warmup (10-12 min) : montée progressive FC, inclure 2-3 accélérations courtes (10s) en fin de warmup
+2. Bloc intervalles — section type "conditioning" avec le protocole ci-dessus
+3. Cooldown (5-8 min) : retour au calme progressif, marche/pédalage léger + respiration
+
+Pour le bloc intervalles :
+- Utilise \`rounds\` pour le nombre de répétitions d'intervalles
+- Utilise \`rest_between_rounds\` (secondes) pour la durée de récupération
+- Précise la modalité cardio (Assault Bike, Rower, Ski Erg, ou Run — selon l'équipement disponible)
+- Précise l'intensité cible : % FCmax ET RPE pour chaque phase
+- Le champ \`stimulus\` doit décrire le système énergétique ciblé (VO2max / aérobie maximal), l'intensité et la stratégie de pacing
+- workout_type = "vo2max", intensity = "very_high" ou "high"`
   }
 
   prompt += `\n\nCrée un workout CrossFit structuré, équilibré et adapté à ce niveau.
