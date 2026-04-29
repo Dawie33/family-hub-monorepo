@@ -18,7 +18,10 @@ export function useAthxDashboard() {
       ])
       setSessions(sessionsData.rows)
       setStats(statsData)
-    } catch { /* silencieux */ } finally {
+    } catch (err) {
+      console.error('[useAthxDashboard] fetchAll failed:', err)
+      toast.error('Impossible de charger les données ATHX')
+    } finally {
       setLoading(false)
     }
   }, [])

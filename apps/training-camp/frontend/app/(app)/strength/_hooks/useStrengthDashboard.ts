@@ -18,7 +18,10 @@ export function useStrengthDashboard() {
       ])
       setSessions(sessionsData.rows)
       setStats(statsData)
-    } catch { /* silencieux */ } finally { setLoading(false) }
+    } catch (err) {
+      console.error('[useStrengthDashboard] fetchAll failed:', err)
+      toast.error('Impossible de charger les données Strength')
+    } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])

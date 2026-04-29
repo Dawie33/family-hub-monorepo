@@ -18,7 +18,10 @@ export function useHyroxDashboard() {
       ])
       setSessions(sessionsData.rows)
       setStats(statsData)
-    } catch { /* silencieux */ } finally { setLoading(false) }
+    } catch (err) {
+      console.error('[useHyroxDashboard] fetchAll failed:', err)
+      toast.error('Impossible de charger les données Hyrox')
+    } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
