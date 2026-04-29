@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
 import axios, { AxiosInstance } from 'axios'
 import {
   UserProfile,
@@ -18,7 +20,14 @@ export class TrainingCampClient implements OnModuleInit {
   private readonly password: string
   readonly isConfigured: boolean
 
-  constructor(private config: ConfigService) {
+  private readonly PROFILE_TTL_MS = 30 * 60 * 1000   // 30 min
+  private readonly PROGRAM_TTL_MS = 60 * 60 * 1000   // 1h
+  private readonly SESSIONS_TTL_MS = 15 * 60 * 1000  // 15 min
+
+  constructor(
+    private config: ConfigService,
+    @Inject(CACHE_MANAGER) private cache: Cache,
+  ) {
     const baseURL = this.config.get<string>('TRAINING_CAMP_API_URL', '')
     this.email = this.config.get<string>('TRAINING_CAMP_EMAIL', '')
     this.password = this.config.get<string>('TRAINING_CAMP_PASSWORD', '')
@@ -82,16 +91,30 @@ export class TrainingCampClient implements OnModuleInit {
   }
 
   async getProfile(): Promise<UserProfile> {
+    const key = 'training-camp:profile'
+    const cached = await this.cache.get<UserProfile>(key)
+    if (cached) {
+      this.logger.debug('Profile from cache (Redis)')
+      return cached
+    }
     await this.ensureReady()
     const { data } = await this.client.get<UserProfile>('/users/me')
+    await this.cache.set(key, data, this.PROFILE_TTL_MS)
     this.logger.debug(`Profile fetched`)
     return data
   }
 
   async getActiveProgram(): Promise<TrainingProgram | null> {
+    const key = 'training-camp:program:active'
+    const cached = await this.cache.get<TrainingProgram | null>(key)
+    if (cached !== undefined && cached !== null) {
+      this.logger.debug('Active program from cache (Redis)')
+      return cached
+    }
     await this.ensureReady()
     try {
       const { data } = await this.client.get<TrainingProgram>('/training-programs/active')
+      await this.cache.set(key, data, this.PROGRAM_TTL_MS)
       return data
     } catch (error) {
       if (error.response?.status === 404) return null
@@ -100,14 +123,28 @@ export class TrainingCampClient implements OnModuleInit {
   }
 
   async getWeekProgram(programId: string, weekNum: number): Promise<any> {
+    const key = `training-camp:program:${programId}:week:${weekNum}`
+    const cached = await this.cache.get<any>(key)
+    if (cached) {
+      this.logger.debug(`Week program ${weekNum} from cache (Redis)`)
+      return cached
+    }
     await this.ensureReady()
     const { data } = await this.client.get(`/training-programs/enrollments/${programId}/week/${weekNum}`)
+    await this.cache.set(key, data, this.PROGRAM_TTL_MS)
     return data
   }
 
   async getRecentSessions(limit = 10): Promise<WorkoutSession[]> {
+    const key = `training-camp:sessions:${limit}`
+    const cached = await this.cache.get<WorkoutSession[]>(key)
+    if (cached) {
+      this.logger.debug(`Recent sessions (${limit}) from cache (Redis)`)
+      return cached
+    }
     await this.ensureReady()
     const { data } = await this.client.get<WorkoutSession[]>('/workout-sessions', { params: { limit } })
+    await this.cache.set(key, data, this.SESSIONS_TTL_MS)
     this.logger.debug(`Fetched ${data.length} recent sessions`)
     return data
   }

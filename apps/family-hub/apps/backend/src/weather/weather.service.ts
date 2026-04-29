@@ -1,30 +1,25 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Inject } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
 import { CurrentWeather } from './weather.interface'
 import { WEATHER_DESCRIPTIONS } from './weather.constants'
 
-interface WeatherCacheEntry {
-  data: CurrentWeather
-  cachedAt: number
-}
+const CACHE_KEY = 'weather:current'
+const CACHE_TTL_MS = 30 * 60 * 1000
 
 @Injectable()
 export class WeatherService {
   private readonly logger = new Logger(WeatherService.name)
-  private readonly CACHE_TTL_MS = 30 * 60 * 1000
   private readonly API_URL =
     'https://api.open-meteo.com/v1/forecast?latitude=44.6533&longitude=-0.6167&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Europe/Paris'
 
-  private weatherCache: WeatherCacheEntry | null = null
-
-  private isCacheValid(): boolean {
-    if (!this.weatherCache) return false
-    return Date.now() - this.weatherCache.cachedAt < this.CACHE_TTL_MS
-  }
+  constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
 
   async getCurrentWeather(): Promise<CurrentWeather> {
-    if (this.isCacheValid()) {
-      this.logger.debug('Returning cached weather data (in-memory)')
-      return this.weatherCache!.data
+    const cached = await this.cache.get<CurrentWeather>(CACHE_KEY)
+    if (cached) {
+      this.logger.debug('Returning cached weather data (Redis)')
+      return cached
     }
 
     try {
@@ -46,13 +41,14 @@ export class WeatherService {
         description: WEATHER_DESCRIPTIONS[current.weather_code] || 'Inconnu',
       }
 
-      this.weatherCache = { data: weather, cachedAt: Date.now() }
+      await this.cache.set(CACHE_KEY, weather, CACHE_TTL_MS)
       this.logger.log(`Weather fetched: ${weather.temperature}°C, ${weather.description}`)
       return weather
     } catch (error) {
-      if (this.weatherCache) {
+      const stale = await this.cache.get<CurrentWeather>(CACHE_KEY)
+      if (stale) {
         this.logger.warn('API failed, returning stale cache')
-        return this.weatherCache.data
+        return stale
       }
       this.logger.error('Failed to fetch weather:', error)
       throw error

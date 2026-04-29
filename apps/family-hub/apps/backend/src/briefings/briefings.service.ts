@@ -3,7 +3,6 @@ import { SupabaseService } from '../database/supabase.service'
 import { assertNoError } from '../database/supabase.helpers'
 import { AIService, ModelProvider } from '../ai/ai.service'
 import { SerperService } from '../ai/serper.service'
-import { AgentsService } from '../agents/agents.service'
 import { MemoryService } from '../memory/memory.service'
 import { Briefing } from './entities/briefing.entity'
 import { BriefingConfig } from './briefing.interface'
@@ -17,7 +16,6 @@ export class BriefingsService {
     private readonly supabase: SupabaseService,
     private readonly aiService: AIService,
     private readonly serperService: SerperService,
-    private readonly agentsService: AgentsService,
     private readonly memoryService: MemoryService,
   ) {}
 
@@ -82,7 +80,7 @@ export class BriefingsService {
   }
 
   private async generateBriefing(config: BriefingConfig, date: string): Promise<void> {
-    this.logger.log(`Generating briefing: ${config.category} using agent: ${config.agentName}`)
+    this.logger.log(`Generating briefing: ${config.category} (${config.modelProvider}/${config.modelName})`)
 
     const { data: existing } = await this.supabase.db
       .from('daily_briefings')
@@ -117,13 +115,6 @@ export class BriefingsService {
     }
 
     try {
-      const agent = await this.agentsService.findOneByName(config.agentName)
-      if (!agent) {
-        throw new Error(`Agent "${config.agentName}" non trouvé pour le briefing ${config.category}`)
-      }
-
-      this.logger.log(`Using agent: ${agent.name} (${agent.model_provider}/${agent.model_name})`)
-
       let searchContext = ''
       const resultCount = config.searchResultCount ?? 5
       const queries = config.searchQueries?.length
@@ -149,7 +140,7 @@ export class BriefingsService {
       const memoryBlock = await this.memoryService.getMemoriesForBriefing(config.category)
       const hasSearch = queries.length > 0
       const combinedPrompt = hasSearch
-        ? `${agent.system_prompt}${memoryBlock}\n\n---\n\n${config.briefingInstructions}${searchContext}`
+        ? `${config.systemPrompt ?? ''}${memoryBlock}\n\n---\n\n${config.briefingInstructions}${searchContext}`
         : `${config.briefingInstructions}${memoryBlock}`
 
       const dateInfo = `Nous sommes le ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.`
@@ -166,8 +157,8 @@ export class BriefingsService {
       const content = await this.aiService.generateAgentResponse(
         userMessage,
         combinedPrompt,
-        agent.model_provider as ModelProvider,
-        agent.model_name,
+        config.modelProvider as ModelProvider,
+        config.modelName,
         [],
       )
 
@@ -176,7 +167,7 @@ export class BriefingsService {
         .update({ content, status: 'completed' })
         .eq('id', briefingId)
 
-      this.logger.log(`Briefing ${config.category} generated successfully with agent ${agent.name}`)
+      this.logger.log(`Briefing ${config.category} generated successfully`)
     } catch (error) {
       await this.supabase.db
         .from('daily_briefings')

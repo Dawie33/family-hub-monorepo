@@ -1,4 +1,30 @@
-import { BriefingConfig } from "./briefing.interface"
+import { BriefingConfig } from './briefing.interface'
+
+const CULTURE_SYSTEM_PROMPT = `Tu es un passionné de culture générale qui adore partager des connaissances de manière captivante.
+
+## Ta mission
+Enrichir la culture générale de toute la famille avec des contenus fascinants, adaptés et mémorables.
+
+## Tes thématiques
+- Histoire : événements marquants, personnages, civilisations
+- Géographie : pays, cultures, merveilles du monde
+- Sciences : découvertes, espace, nature, corps humain
+- Arts : artistes, œuvres, mouvements artistiques
+- Musique : genres, artistes, anecdotes
+- Cinéma : films cultes, acteurs, coulisses
+- Inventions : qui a inventé quoi et pourquoi
+- Animaux : comportements étonnants, records
+- Gastronomie : origines des plats, traditions culinaires`
+
+const CHERCHEUR_WEB_SYSTEM_PROMPT = `Tu es un chercheur web expert, spécialisé dans la recherche et la synthèse d'informations en ligne.
+
+## Ta mission
+Rechercher des informations sur le web et les synthétiser de manière claire, structurée et utile pour l'utilisateur.
+
+## Règles importantes
+- Ne fabrique JAMAIS d'informations : base-toi uniquement sur les résultats de recherche fournis
+- Privilégie les sources récentes et fiables
+- Indique clairement quand une information est incertaine`
 
 const BRIEFING_CONFIGS: BriefingConfig[] = [
   {
@@ -6,7 +32,8 @@ const BRIEFING_CONFIGS: BriefingConfig[] = [
     title: 'Citation du Jour',
     icon: '✨',
     searchQuery: '',
-    agentName: 'culture_du_jour',
+    modelProvider: 'huggingface',
+    modelName: 'meta-llama/Llama-3.2-3B-Instruct',
     briefingInstructions: `## IMPORTANT : Citation Inspirante UNIQUEMENT
 
 Tu dois générer UNE SEULE citation inspirante courte (1-2 phrases maximum).
@@ -42,7 +69,9 @@ NE RÉPONDS QU'AVEC LA CITATION ET L'AUTEUR, RIEN D'AUTRE.`,
       'tennis ATP WTA résultats tournoi cette semaine',
     ],
     searchResultCount: 5,
-    agentName: 'chercheur_web',
+    systemPrompt: CHERCHEUR_WEB_SYSTEM_PROMPT,
+    modelProvider: 'openai',
+    modelName: 'gpt-4o-mini',
     briefingInstructions: `## Format pour le briefing "Résultats Sportifs"
 
 Tu es un journaliste sportif passionné. Rédige un VRAI résumé sportif riche et détaillé à partir des informations fournies, couvrant les **derniers jours** (pas uniquement hier).
@@ -68,10 +97,6 @@ Inclus :
 - Les **faits marquants** (actions décisives, records, surprises)
 - Ce que ça **signifie pour la suite** (qualifications, éliminations, classement)
 
-EXEMPLE DE BON FORMAT :
-## 🏀 NBA — Les matchs de la semaine
-Les Lakers ont dominé les Warriors 112-108 dans un match intense au Crypto.com Arena. LeBron James a été impérial avec 34 points et 12 passes, scellant la victoire dans le money time avec un tir à 3 points à 30 secondes de la fin. Cette victoire place les Lakers en 5e position de la Conférence Ouest, à seulement un match des Clippers.
-
 RÈGLES :
 - Si des préférences sportives sont connues dans les informations famille, adapte les priorités
 - N'invente JAMAIS de résultats. Si tu n'as pas d'info sur un sport, ne l'inclus pas
@@ -83,7 +108,9 @@ RÈGLES :
     title: 'Actualités du Jour',
     icon: '📰',
     searchQuery: "actualités france aujourd'hui principales informations",
-    agentName: 'chercheur_web',
+    systemPrompt: CHERCHEUR_WEB_SYSTEM_PROMPT,
+    modelProvider: 'openai',
+    modelName: 'gpt-4o-mini',
     briefingInstructions: `## Format pour le briefing "Actualités du Jour"
 
 À partir des informations fournies, rédige un résumé des principales actualités du jour en France et dans le monde.
@@ -102,7 +129,9 @@ Format attendu:
     title: 'Culture du Jour',
     icon: '💡',
     searchQuery: 'le saviez-vous fait historique du jour anecdote culturelle',
-    agentName: 'culture_du_jour',
+    systemPrompt: CULTURE_SYSTEM_PROMPT,
+    modelProvider: 'huggingface',
+    modelName: 'meta-llama/Llama-3.2-3B-Instruct',
     briefingInstructions: `## Format pour le briefing "Culture du Jour"
 
 À partir des informations fournies, partage un fait culturel fascinant du jour.
@@ -120,7 +149,9 @@ Format attendu:
     title: 'Météo du Jour',
     icon: '☀️',
     searchQuery: "météo france aujourd'hui prévisions températures Bordeaux Saucats",
-    agentName: 'chercheur_web',
+    systemPrompt: CHERCHEUR_WEB_SYSTEM_PROMPT,
+    modelProvider: 'openai',
+    modelName: 'gpt-4o-mini',
     briefingInstructions: `## Format pour le briefing "Météo du Jour"
 
 À partir des informations fournies, fais un résumé météo pour la journée.
@@ -136,6 +167,6 @@ Format attendu:
 - Maximum 100 mots
 - Langue: français`,
   },
-];
+]
 
-export { BRIEFING_CONFIGS };
+export { BRIEFING_CONFIGS }

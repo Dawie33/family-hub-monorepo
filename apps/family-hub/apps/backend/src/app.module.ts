@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { CacheModule } from '@nestjs/cache-manager'
+import { createKeyv } from '@keyv/redis'
 import { ScheduleModule } from '@nestjs/schedule'
 import { DatabaseModule } from './database/database.module'
 import { AIModule } from './ai/ai.module'
-import { AgentsModule } from './agents/agents.module'
 import { ChatModule } from './chat/chat.module'
 import { EventsModule } from './events/events.module'
 import { BriefingsModule } from './briefings/briefings.module'
@@ -23,10 +24,21 @@ import { FamiliesModule } from './families/families.module'
       isGlobal: true,
       envFilePath: '../../.env',
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        stores: [
+          createKeyv(
+            `redis://${config.get('REDIS_HOST', 'localhost')}:${config.get('REDIS_PORT', 6379)}`,
+          ),
+        ],
+        ttl: 5 * 60 * 1000, // 5 min par défaut (en millisecondes)
+      }),
+    }),
     ScheduleModule.forRoot(),
     DatabaseModule,
     AIModule,
-    AgentsModule,
     ChatModule,
     EventsModule,
     BriefingsModule,
