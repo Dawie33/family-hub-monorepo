@@ -6,6 +6,7 @@ import { activitiesApi } from '@/services/activities'
 import { ATHX_SESSION_TYPE_LABELS, AthxSessionType } from '@/services/athx'
 import { HYROX_SESSION_TYPE_LABELS, HyroxSessionType } from '@/services/hyrox'
 import { RUN_TYPE_LABELS, RunType } from '@/services/running'
+import { SESSION_GOAL_LABELS, StrengthSession, strengthService } from '@/services/strength'
 import { workoutsApi, workoutsService } from '@/services/workouts'
 import { Activity, Dumbbell, Footprints, Search, Sparkles, Trophy, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -14,13 +15,14 @@ import { PersonalizedWorkoutListItem } from './PersonalizedWorkoutListItem'
 import { WorkoutFilterPanel } from './WorkoutFilterPanel'
 import { WorkoutListItem } from './WorkoutListItem'
 
-type SportTab = 'crossfit' | 'running' | 'hyrox' | 'athx'
+type SportTab = 'crossfit' | 'running' | 'hyrox' | 'athx' | 'strength'
 
 const SPORT_TABS: { id: SportTab; label: string; icon: React.ReactNode; color: string; activeColor: string }[] = [
   { id: 'crossfit', label: 'CrossFit', icon: <Activity className="h-4 w-4" />, color: 'text-slate-400', activeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
   { id: 'running', label: 'Running', icon: <Footprints className="h-4 w-4" />, color: 'text-slate-400', activeColor: 'bg-green-500/20 text-green-400 border-green-500/30' },
   { id: 'hyrox', label: 'HYROX', icon: <Trophy className="h-4 w-4" />, color: 'text-slate-400', activeColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   { id: 'athx', label: 'ATHX', icon: <Zap className="h-4 w-4" />, color: 'text-slate-400', activeColor: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  { id: 'strength', label: 'Force', icon: <Dumbbell className="h-4 w-4" />, color: 'text-slate-400', activeColor: 'bg-red-500/20 text-red-400 border-red-500/30' },
 ]
 
 interface ScheduleWorkoutModalProps {
@@ -64,6 +66,13 @@ export function ScheduleWorkoutModal({ open, onOpenChange, selectedDate, onSched
   const [hyroxType, setHyroxType] = useState<HyroxSessionType>('full_simulation')
   const [athxType, setAthxType] = useState<AthxSessionType>('mixed')
 
+  // Force
+  const [strengthSessions, setStrengthSessions] = useState<StrengthSession[]>([])
+  const [loadingStrength, setLoadingStrength] = useState(false)
+  const [selectedStrengthId, setSelectedStrengthId] = useState<string>('')
+  const [strengthSearch, setStrengthSearch] = useState('')
+  const [strengthGoalFilter, setStrengthGoalFilter] = useState<string>('')
+
   useEffect(() => {
     if (open) {
       loadWorkouts(true)
@@ -84,6 +93,16 @@ export function ScheduleWorkoutModal({ open, onOpenChange, selectedDate, onSched
     }
   }, [personalizedSearch, activeTab])
 
+  useEffect(() => {
+    if (open && sportTab === 'strength' && strengthSessions.length === 0) {
+      setLoadingStrength(true)
+      strengthService.getSessions({ limit: 30 })
+        .then(data => setStrengthSessions(data.rows))
+        .catch(() => {})
+        .finally(() => setLoadingStrength(false))
+    }
+  }, [open, sportTab])
+
   const resetState = () => {
     setWorkouts([])
     setPersonalizedWorkouts([])
@@ -101,13 +120,18 @@ export function ScheduleWorkoutModal({ open, onOpenChange, selectedDate, onSched
     setRunType('easy')
     setHyroxType('full_simulation')
     setAthxType('mixed')
+    setStrengthSessions([])
+    setSelectedStrengthId('')
+    setStrengthSearch('')
+    setStrengthGoalFilter('')
   }
 
   const handleSubmitSportActivity = async () => {
-    const activityTypeMap: Record<Exclude<SportTab, 'crossfit'>, 'running' | 'hyrox' | 'athx'> = {
+    const activityTypeMap: Record<Exclude<SportTab, 'crossfit'>, 'running' | 'hyrox' | 'athx' | 'strength'> = {
       running: 'running',
       hyrox: 'hyrox',
       athx: 'athx',
+      strength: 'strength',
     }
     if (sportTab === 'crossfit') return
     setSubmitting(true)
@@ -115,6 +139,7 @@ export function ScheduleWorkoutModal({ open, onOpenChange, selectedDate, onSched
       await activitiesApi.create({
         activity_type: activityTypeMap[sportTab],
         scheduled_date: selectedDate.toISOString().slice(0, 10),
+        activity_id: sportTab === 'strength' ? selectedStrengthId || undefined : undefined,
         notes: notes || undefined,
       })
       toast.success('Séance planifiée !')
@@ -272,7 +297,7 @@ export function ScheduleWorkoutModal({ open, onOpenChange, selectedDate, onSched
         )}
 
         {/* --- RUNNING / HYROX / ATHX --- */}
-        {sportTab !== 'crossfit' && (
+        {sportTab !== 'crossfit' && sportTab !== 'strength' && (
           <div className="flex flex-col gap-4 flex-1">
             <div className="space-y-2">
               <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Type de séance</label>
@@ -307,6 +332,92 @@ export function ScheduleWorkoutModal({ open, onOpenChange, selectedDate, onSched
               <button type="button" onClick={() => { resetState(); onOpenChange(false) }} disabled={submitting} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition-colors">Annuler</button>
               <button type="button" onClick={handleSubmitSportActivity} disabled={submitting}
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${submitting ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}>
+                {submitting ? 'Planification...' : 'Planifier'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* --- FORCE --- */}
+        {sportTab === 'strength' && (
+          <div className="flex flex-col gap-3 flex-1 overflow-hidden min-h-0">
+            {/* Recherche + filtre objectif */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher une séance..."
+                  value={strengthSearch}
+                  onChange={e => setStrengthSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-400/50"
+                />
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {['', 'strength', 'hypertrophy', 'endurance', 'power'].map(goal => (
+                  <button
+                    key={goal}
+                    type="button"
+                    onClick={() => setStrengthGoalFilter(goal)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${strengthGoalFilter === goal ? 'bg-red-500/20 border-red-500/40 text-red-400' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'}`}
+                  >
+                    {goal === '' ? 'Tous' : SESSION_GOAL_LABELS[goal as keyof typeof SESSION_GOAL_LABELS]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0" style={{ maxHeight: '240px' }}>
+              {loadingStrength ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-400" />
+                </div>
+              ) : (() => {
+                const filtered = strengthSessions.filter(s => {
+                  const name = s.ai_plan?.session_name ?? ''
+                  const matchSearch = strengthSearch === '' ||
+                    name.toLowerCase().includes(strengthSearch.toLowerCase()) ||
+                    s.target_muscles.some(m => m.toLowerCase().includes(strengthSearch.toLowerCase()))
+                  const matchGoal = strengthGoalFilter === '' || s.session_goal === strengthGoalFilter
+                  return matchSearch && matchGoal
+                })
+                if (strengthSessions.length === 0) return (
+                  <div className="text-center py-8 text-slate-500 text-sm space-y-2">
+                    <Dumbbell className="w-8 h-8 mx-auto text-slate-600" />
+                    <p>Aucune séance force créée.</p>
+                    <a href="/strength/generate" className="text-red-400 hover:underline text-xs">Générer une séance →</a>
+                  </div>
+                )
+                if (filtered.length === 0) return (
+                  <p className="text-center py-6 text-slate-500 text-sm">Aucun résultat</p>
+                )
+                return filtered.map(session => {
+                  const name = session.ai_plan?.session_name ?? SESSION_GOAL_LABELS[session.session_goal]
+                  const isSelected = selectedStrengthId === session.id
+                  return (
+                    <button
+                      key={session.id}
+                      type="button"
+                      onClick={() => setSelectedStrengthId(session.id)}
+                      className={`w-full text-left px-3 py-2.5 rounded-xl border transition-all ${isSelected ? 'bg-red-500/20 border-red-500/50 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}
+                    >
+                      <p className="font-semibold text-sm">{name}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{session.target_muscles.join(', ')} · {SESSION_GOAL_LABELS[session.session_goal]}</p>
+                    </button>
+                  )
+                })
+              })()}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Notes (optionnel)</label>
+              <textarea placeholder="Objectif, charge cible, intention..." value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full px-3 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-400/50 resize-none" />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1 border-t border-white/10">
+              <button type="button" onClick={() => { resetState(); onOpenChange(false) }} disabled={submitting} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition-colors">Annuler</button>
+              <button type="button" onClick={handleSubmitSportActivity} disabled={submitting}
+                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${submitting ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 text-white'}`}>
                 {submitting ? 'Planification...' : 'Planifier'}
               </button>
             </div>
