@@ -51,7 +51,7 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
 - **isolation** : travail d'isolation (curl, extension triceps, élévations latérales, mollets, poignets, marteau)
 - **core** : gainage, stabilisation et abdominaux (planche, crunch lesté, ab wheel, hollow body, L-sit, mountain climbers, GHD sit-up, dragon flag, Copenhagen plank)
 
-⚠️ IMPORTANT : utilise UNIQUEMENT ces 8 valeurs pour `block_type`. N'invente PAS de nouveaux types.
+IMPORTANT : utilise UNIQUEMENT ces 8 valeurs pour block_type : push, pull, hinge, squat, carry, rotation, isolation, core. N'invente PAS de nouveaux types.
 
 # RÈGLES DE PROGRAMMATION
 
