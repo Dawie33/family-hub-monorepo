@@ -142,6 +142,7 @@ export interface GenerateStrengthDto {
   userLevel?: string
   availableEquipment?: string[]
   additionalContext?: string
+  targetDurationMinutes?: number
   existingPlan?: GeneratedStrengthSession
 }
 

@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator'
+import { IsArray, IsEnum, IsInt, IsOptional, IsString, Max, Min, IsNumber } from 'class-validator'
 import type { MuscleGroup, SessionGoal } from '../types/strength.types'
 
 export class GenerateStrengthSessionDto {
@@ -21,6 +21,13 @@ export class GenerateStrengthSessionDto {
   @IsOptional()
   @IsString()
   additionalContext?: string
+
+  @IsOptional()
+  @IsNumber()
+  @IsInt()
+  @Min(20)
+  @Max(180)
+  targetDurationMinutes?: number
 
   // Plan déjà généré par /generate/preview, évite un second appel IA
   @IsOptional()

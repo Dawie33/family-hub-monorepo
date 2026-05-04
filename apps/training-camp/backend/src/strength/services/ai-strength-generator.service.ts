@@ -70,6 +70,7 @@ export class AIStrengthGeneratorService {
         injuries: ctx.injuries,
         physicalLimitations: ctx.physical_limitations,
         additionalContext: dto.additionalContext,
+        targetDurationMinutes: dto.targetDurationMinutes,
       })
 
       const completion = await this.openai.chat.completions.create({

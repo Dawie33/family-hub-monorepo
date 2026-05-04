@@ -15,7 +15,7 @@ import {
 } from '@/services/strength'
 import { usersService } from '@/services/users'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle2, Dumbbell, Home, Loader2, RotateCcw, Save, Sparkles, Zap } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Clock, Dumbbell, Home, Loader2, RotateCcw, Save, Sparkles, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -43,6 +43,7 @@ export default function GenerateStrengthPage() {
   const [savedEquipment, setSavedEquipment] = useState<string[]>([])
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [additionalContext, setAdditionalContext] = useState('')
+  const [targetDurationMinutes, setTargetDurationMinutes] = useState<number | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [plan, setPlan] = useState<GeneratedStrengthSession | null>(null)
@@ -64,6 +65,7 @@ export default function GenerateStrengthPage() {
     sessionGoal,
     availableEquipment: equipmentMode === 'bodyweight' ? [] : savedEquipment,
     additionalContext: additionalContext || undefined,
+    targetDurationMinutes,
   })
 
   const handleGenerate = async () => {
@@ -154,6 +156,30 @@ export default function GenerateStrengthPage() {
                     <p className="font-semibold text-sm text-white">{SESSION_GOAL_LABELS[value]}</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">{description}</p>
                     <p className="text-[10px] text-slate-500 mt-0.5">{reps}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Durée cible */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-300 mb-3 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-slate-400" />Durée cible
+                {targetDurationMinutes === undefined && (
+                  <span className="ml-1 text-slate-500 font-normal text-xs">(libre)</span>
+                )}
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[undefined, 30, 45, 60, 75, 90].map((duration) => (
+                  <button
+                    key={duration ?? 'libre'}
+                    onClick={() => setTargetDurationMinutes(duration)}
+                    data-active={targetDurationMinutes === duration}
+                    className="text-center p-2.5 rounded-xl border bg-white/5 border-white/10 transition-all data-[active=true]:bg-violet-500/20 data-[active=true]:border-violet-500 hover:border-white/20"
+                  >
+                    <p className="font-semibold text-sm text-white">
+                      {duration === undefined ? 'Libre' : `${duration} min`}
+                    </p>
                   </button>
                 ))}
               </div>

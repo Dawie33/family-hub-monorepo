@@ -11,7 +11,7 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
   "session_name": "Nom court et descriptif (ex: Push Épaules + Rotation)",
   "target_muscles": ["shoulders", "arms"],
   "session_goal": "strength|hypertrophy|endurance|power",
-  "estimated_duration_minutes": 50,
+  "estimated_duration_minutes": 60,
   "coaching_notes": "Contexte global de la séance, intention, points d'attention",
   "warmup": {
     "duration": "8-10 min",
@@ -47,7 +47,7 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
 - **hinge** : charnière de hanche (RDL, good morning, hip thrust)
 - **squat** : flexion de genou (back squat, goblet squat, leg press, bulgarian split squat)
 - **carry** : portés (farmer's carry, suitcase carry, overhead carry)
-- **rotation** : mouvements de rotation et anti-rotation (Pallof press, landmine rotation, woodchop bande élastique, cable woodchop, Russian twist lesté, half-kneeling rotation)
+- **rotation** : mouvements de rotation et anti-rotation (woodchop bande, landmine rotation, cable woodchop, dead bug, Russian twist lesté, bird-dog, Pallof press, half-kneeling rotation)
 - **isolation** : travail d'isolation (curl, extension triceps, élévations latérales, mollets, poignets, marteau)
 
 # RÈGLES DE PROGRAMMATION
@@ -57,7 +57,7 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
 - Si "dumbbells" disponibles → utiliser haltères pour unilatéral et variation
 - Si "bands" disponibles → intégrer obligatoirement AU MOINS UN exercice de rotation ou anti-rotation avec bande
 - Si "landmine" disponible → proposer landmine press, landmine row, landmine rotation
-- Si "cable_machine" disponible → Pallof press, woodchop, face pull au câble
+- Si "cable_machine" disponible → cable woodchop, face pull, cable rotation, Pallof press câble
 - Si équipement limité → adapter avec poids de corps, bandes, haltères légers
 - Toujours proposer des ALTERNATIVES pour chaque exercice
 
@@ -65,17 +65,24 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
 - TOUJOURS inclure au moins 1 exercice de rotation ou anti-rotation, quelle que soit la zone ciblée
 - Si zone = core → au moins 2 exercices de rotation
 - Les rotations se placent en fin de bloc principal, ou dans un bloc dédié "Core + Rotation"
-- Types de rotations selon matériel :
-  * Bande élastique : Pallof press, woodchop debout, rotation à genoux
-  * Landmine : landmine rotation, landmine rainbow, Pallof press landmine
-  * Câble : cable woodchop, Pallof press câble, cable rotation
-  * Poids de corps : Russian twist, dead bug, bird-dog
+- **VARIÉTÉ OBLIGATOIRE** : ne pas toujours choisir le Pallof press — distribue les choix sur tout le répertoire ci-dessous. Chaque génération doit proposer un exercice DIFFÉRENT de la précédente.
+- Répertoire complet par matériel (choisir librement parmi toute la liste, ne pas toujours prendre le premier) :
+  * Bande élastique : woodchop debout bande, rotation à genoux bande, Pallof press bande, archer row bande, pull-apart horizontal bande, rotation thoracique avec bande
+  * Landmine : landmine rotation, landmine rainbow, landmine meadows row, Pallof press landmine, landmine twist debout
+  * Câble : cable woodchop haut-bas, cable woodchop bas-haut, Pallof press câble, cable rotation debout, cable chop genoux
+  * Poids de corps : dead bug, bird-dog, hollow body rock, Russian twist lesté, Copenhagen plank, side plank rotation, bear crawl rotation
 
 ## Intensité selon l'objectif
 - strength : 3-6 reps, RPE 8-9, repos 3-5 min
 - hypertrophy : 8-12 reps, RPE 7-8, repos 60-90 sec
 - endurance : 15-20+ reps, RPE 6-7, repos 30-60 sec
 - power : 3-5 reps explosifs, RPE 7-8, repos 2-3 min
+
+## Durée de séance
+- Si une durée cible est précisée dans la requête : RESPECTE-LA strictement. Ajuste le nombre de blocs, d'exercices et le volume en conséquence.
+- Si aucune durée n'est précisée : adapte librement selon le volume (typiquement 45-75 min).
+- Règle de construction : échauffement (8-10 min) + blocs (15-20 min chacun) + cooldown (5 min) = durée totale.
+- Exemples : 30 min → 1 bloc court · 45 min → 2 blocs · 60 min → 3 blocs · 90 min → 4-5 blocs
 
 ## Nombre de blocs
 - Séance complète : 3-4 blocs + 1 bloc rotation/core
@@ -111,6 +118,7 @@ export function buildStrengthUserPrompt(params: {
   injuries?: Record<string, unknown>
   physicalLimitations?: Record<string, unknown>
   additionalContext?: string
+  targetDurationMinutes?: number
 }): string {
   const equipmentStr = params.availableEquipment.length > 0
     ? params.availableEquipment.join(', ')
@@ -155,12 +163,16 @@ export function buildStrengthUserPrompt(params: {
     ? `\n\nInstructions supplémentaires : ${params.additionalContext}`
     : ''
 
+  const durationStr = params.targetDurationMinutes
+    ? `\nDurée cible : ${params.targetDurationMinutes} minutes — RESPECTE cette contrainte, ajuste le nombre de blocs et d'exercices en conséquence.`
+    : ''
+
   return `Génère une séance de force avec les paramètres suivants :
 
 Groupes musculaires ciblés : ${params.targetMuscles.join(', ')}
 Objectif : ${params.sessionGoal}
 Niveau de l'athlète : ${params.userLevel}
-Matériel disponible : ${equipmentStr}${recentStr}${historyStr}${maxStr}${safetyStr}${contextStr}
+Matériel disponible : ${equipmentStr}${durationStr}${recentStr}${historyStr}${maxStr}${safetyStr}${contextStr}
 
 Génère une séance complète et cohérente au format JSON demandé.`
 }
