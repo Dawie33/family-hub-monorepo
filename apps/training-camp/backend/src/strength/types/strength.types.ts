@@ -2,7 +2,7 @@ export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'arms' | 'forearms' |
 
 export type SessionGoal = 'strength' | 'hypertrophy' | 'endurance' | 'power'
 
-export type BlockType = 'push' | 'pull' | 'hinge' | 'squat' | 'carry' | 'rotation' | 'isolation'
+export type BlockType = 'push' | 'pull' | 'hinge' | 'squat' | 'carry' | 'rotation' | 'isolation' | 'core'
 
 export const MUSCLE_GROUPS: MuscleGroup[] = [
   'chest', 'back', 'shoulders', 'arms', 'forearms', 'legs', 'glutes', 'core',

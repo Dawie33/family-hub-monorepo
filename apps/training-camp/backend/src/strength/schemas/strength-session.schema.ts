@@ -13,7 +13,7 @@ const ExerciseSchema = z.object({
 
 const BlockSchema = z.object({
   block_name: z.string().min(1),
-  block_type: z.enum(['push', 'pull', 'hinge', 'squat', 'carry', 'rotation', 'isolation']),
+  block_type: z.enum(['push', 'pull', 'hinge', 'squat', 'carry', 'rotation', 'isolation', 'core']),
   exercises: z.array(ExerciseSchema).min(1),
 })
 

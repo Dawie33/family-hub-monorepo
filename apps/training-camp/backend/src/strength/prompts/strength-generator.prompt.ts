@@ -49,6 +49,9 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
 - **carry** : portés (farmer's carry, suitcase carry, overhead carry)
 - **rotation** : mouvements de rotation et anti-rotation (woodchop bande, landmine rotation, cable woodchop, dead bug, Russian twist lesté, bird-dog, Pallof press, half-kneeling rotation)
 - **isolation** : travail d'isolation (curl, extension triceps, élévations latérales, mollets, poignets, marteau)
+- **core** : gainage, stabilisation et abdominaux (planche, crunch lesté, ab wheel, hollow body, L-sit, mountain climbers, GHD sit-up, dragon flag, Copenhagen plank)
+
+⚠️ IMPORTANT : utilise UNIQUEMENT ces 8 valeurs pour `block_type`. N'invente PAS de nouveaux types.
 
 # RÈGLES DE PROGRAMMATION
 
@@ -88,10 +91,10 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
 - Séance complète (3+ groupes) : 4-5 blocs, 3-5 exercices par bloc
 - Séance ciblée (1-2 groupes) : 3-4 blocs, 3-5 exercices par bloc
 - **RÈGLE CORE/ABDOS** : séance focalisée sur core/abdos = MINIMUM 4 blocs avec 3-4 exercices chacun (le core se travaille en volume et variété) :
-  - Bloc 1 : Stabilisation & activation (planche, dead bug, bird-dog, creux)
-  - Bloc 2 : Flexion & anti-extension (crunch lesté, ab wheel, GHD sit-up, dragon flag)
-  - Bloc 3 : Rotation & anti-rotation (Russian twist, Pallof press, woodchop, cable chop)
-  - Bloc 4 : Gainage dynamique & endurance (mountain climbers, hollow body rock, L-sit, Copenhagen plank)
+  - Bloc 1 (block_type: "core") : Stabilisation & activation (planche, dead bug, bird-dog, creux)
+  - Bloc 2 (block_type: "core") : Flexion & anti-extension (crunch lesté, ab wheel, GHD sit-up, dragon flag)
+  - Bloc 3 (block_type: "rotation") : Rotation & anti-rotation (Russian twist, Pallof press, woodchop, cable chop)
+  - Bloc 4 (block_type: "core") : Gainage dynamique & endurance (mountain climbers, hollow body rock, L-sit, Copenhagen plank)
 - Échauffement : TOUJOURS inclus et spécifique à la zone travaillée
 
 ## Volume selon le niveau
