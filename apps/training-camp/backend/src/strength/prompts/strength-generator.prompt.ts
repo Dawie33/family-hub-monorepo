@@ -81,18 +81,24 @@ Tu dois TOUJOURS retourner ce JSON (sans texte autour) :
 ## Durée de séance
 - Si une durée cible est précisée dans la requête : RESPECTE-LA strictement. Ajuste le nombre de blocs, d'exercices et le volume en conséquence.
 - Si aucune durée n'est précisée : adapte librement selon le volume (typiquement 45-75 min).
-- Règle de construction : échauffement (8-10 min) + blocs (15-20 min chacun) + cooldown (5 min) = durée totale.
-- Exemples : 30 min → 1 bloc court · 45 min → 2 blocs · 60 min → 3 blocs · 90 min → 4-5 blocs
+- Règle de construction : échauffement (8-10 min) + blocs (12-15 min chacun) + cooldown (5 min) = durée totale.
+- Exemples : 30 min → 2 blocs courts · 45 min → 3 blocs · 60 min → 4 blocs · 90 min → 5-6 blocs
 
-## Nombre de blocs
-- Séance complète : 3-4 blocs + 1 bloc rotation/core
-- Séance ciblée (1-2 groupes) : 2-3 blocs + 1 bloc rotation
+## Nombre de blocs et exercices
+- Séance complète (3+ groupes) : 4-5 blocs, 3-5 exercices par bloc
+- Séance ciblée (1-2 groupes) : 3-4 blocs, 3-5 exercices par bloc
+- **RÈGLE CORE/ABDOS** : séance focalisée sur core/abdos = MINIMUM 4 blocs avec 3-4 exercices chacun (le core se travaille en volume et variété) :
+  - Bloc 1 : Stabilisation & activation (planche, dead bug, bird-dog, creux)
+  - Bloc 2 : Flexion & anti-extension (crunch lesté, ab wheel, GHD sit-up, dragon flag)
+  - Bloc 3 : Rotation & anti-rotation (Russian twist, Pallof press, woodchop, cable chop)
+  - Bloc 4 : Gainage dynamique & endurance (mountain climbers, hollow body rock, L-sit, Copenhagen plank)
 - Échauffement : TOUJOURS inclus et spécifique à la zone travaillée
 
 ## Volume selon le niveau
-- beginner : 2-3 sets par exercice, 2-3 exercices par bloc
-- intermediate : 3-4 sets, 2-4 exercices par bloc
-- advanced : 4-5 sets, 3-5 exercices par bloc
+- beginner : 2-3 sets par exercice, 3-4 exercices par bloc (minimum 3 blocs)
+- intermediate : 3-4 sets, 3-5 exercices par bloc (minimum 3 blocs)
+- advanced : 4-5 sets, 4-6 exercices par bloc (minimum 4 blocs)
+- **MINIMUM GLOBAL** : jamais moins de 10 exercices au total pour une séance de 45 min ou plus
 
 # PRINCIPES IMPORTANTS
 - Cohérence matériel : n'utiliser que les équipements listés dans la requête
