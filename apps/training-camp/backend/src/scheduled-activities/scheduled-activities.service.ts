@@ -5,7 +5,7 @@ import { InjectModel } from 'nest-knexjs'
 import { CreateScheduledActivityDto, UnifiedActivityQueryDto, UpdateScheduledActivityDto } from './dto/scheduled-activity.dto'
 import { UnifiedActivity } from './types/unified-activity.type'
 
-const ACTIVITY_LABELS: Record<string, string> = { hyrox: 'HYROX', running: 'Running', athx: 'ATHX' }
+const ACTIVITY_LABELS: Record<string, string> = { hyrox: 'HYROX', running: 'Running', athx: 'ATHX', strength: 'Force' }
 
 @Injectable()
 export class ScheduledActivitiesService {
@@ -85,13 +85,31 @@ export class ScheduledActivitiesService {
 
       const saRows = await saQuery.orderBy('scheduled_date', 'asc')
 
+      // Batch-fetch les strength_sessions liées pour enrichir les activités force planifiées
+      const strengthActivityIds = saRows
+        .filter(r => r.activity_type === 'strength' && r.activity_id)
+        .map(r => r.activity_id)
+
+      const linkedStrengthMap = new Map<string, Record<string, unknown>>()
+      if (strengthActivityIds.length > 0) {
+        const linked = await this.knex('strength_sessions').whereIn('id', strengthActivityIds)
+        for (const s of linked) linkedStrengthMap.set(s.id, s)
+      }
+
       for (const row of saRows) {
-        const typeLabels: Record<string, string> = {
-          hyrox: 'HYROX',
-          running: 'Running',
-          athx: 'ATHX',
+        let title = ACTIVITY_LABELS[row.activity_type] || row.activity_type
+        let target_muscles: string[] | undefined
+        let session_goal: string | undefined
+
+        if (row.activity_type === 'strength' && row.activity_id) {
+          const session = linkedStrengthMap.get(row.activity_id)
+          if (session) {
+            const aiPlan = session.ai_plan as Record<string, unknown> | null
+            title = (aiPlan?.session_name as string) || 'Séance Force'
+            target_muscles = Array.isArray(session.target_muscles) ? session.target_muscles : []
+            session_goal = session.session_goal as string | undefined
+          }
         }
-        const title = typeLabels[row.activity_type] || row.activity_type
 
         activities.push({
           id: row.id,
@@ -107,17 +125,26 @@ export class ScheduledActivitiesService {
           updated_at: row.updated_at,
           activity_type: row.activity_type,
           activity_id: row.activity_id,
+          target_muscles,
+          session_goal,
           _source: 'scheduled_activities',
         })
       }
     }
 
     // --- Force (strength_sessions) ---
-    // Les séances de force sont toujours réalisées (status = completed)
+    // N'affiche que les séances NON liées à une scheduled_activity (évite les doublons)
     if (!moduleFilter || moduleFilter === 'strength') {
       if (!status || status === 'completed') {
-        let ssQuery = this.knex('strength_sessions').where('user_id', userId)
+        // IDs déjà couverts par scheduled_activities
+        const scheduledIds = await this.knex('scheduled_activities')
+          .where('user_id', userId)
+          .where('activity_type', 'strength')
+          .whereNotNull('activity_id')
+          .pluck('activity_id')
 
+        let ssQuery = this.knex('strength_sessions').where('user_id', userId)
+        if (scheduledIds.length > 0) ssQuery = ssQuery.whereNotIn('id', scheduledIds)
         if (start_date) ssQuery = ssQuery.where('session_date', '>=', start_date)
         if (end_date) ssQuery = ssQuery.where('session_date', '<=', end_date)
 
@@ -125,8 +152,8 @@ export class ScheduledActivitiesService {
 
         for (const row of ssRows) {
           const muscles: string[] = Array.isArray(row.target_muscles) ? row.target_muscles : []
-          const muscleLabel = muscles.slice(0, 2).join(', ')
-          const title = muscleLabel ? `Force — ${muscleLabel}` : 'Séance Force'
+          const aiPlan = row.ai_plan as Record<string, unknown> | null
+          const title = (aiPlan?.session_name as string) || (muscles.length > 0 ? `Force — ${muscles.slice(0, 2).join(', ')}` : 'Séance Force')
 
           activities.push({
             id: row.id,
@@ -185,6 +212,20 @@ export class ScheduledActivitiesService {
       scheduledDate: data.scheduled_date,
     }).catch(() => undefined)
 
+    let title = ACTIVITY_LABELS[row.activity_type] || row.activity_type
+    let target_muscles: string[] | undefined
+    let session_goal: string | undefined
+
+    if (row.activity_type === 'strength' && row.activity_id) {
+      const session = await this.knex('strength_sessions').where('id', row.activity_id).first()
+      if (session) {
+        const aiPlan = session.ai_plan as Record<string, unknown> | null
+        title = (aiPlan?.session_name as string) || 'Séance Force'
+        target_muscles = Array.isArray(session.target_muscles) ? session.target_muscles : []
+        session_goal = session.session_goal as string | undefined
+      }
+    }
+
     return {
       id: row.id,
       user_id: row.user_id,
@@ -193,12 +234,14 @@ export class ScheduledActivitiesService {
         : new Date(row.scheduled_date).toISOString().slice(0, 10),
       module: row.activity_type,
       status: row.status,
-      title: ACTIVITY_LABELS[row.activity_type] || row.activity_type,
+      title,
       notes: row.notes,
       created_at: row.created_at,
       updated_at: row.updated_at,
       activity_type: row.activity_type,
       activity_id: row.activity_id,
+      target_muscles,
+      session_goal,
       _source: 'scheduled_activities',
     }
   }
@@ -241,7 +284,19 @@ export class ScheduledActivitiesService {
       })
       .returning('*')
 
-    const typeLabels: Record<string, string> = { hyrox: 'HYROX', running: 'Running', athx: 'ATHX' }
+    let updateTitle = ACTIVITY_LABELS[row.activity_type] || row.activity_type
+    let updateMuscles: string[] | undefined
+    let updateGoal: string | undefined
+
+    if (row.activity_type === 'strength' && row.activity_id) {
+      const session = await this.knex('strength_sessions').where('id', row.activity_id).first()
+      if (session) {
+        const aiPlan = session.ai_plan as Record<string, unknown> | null
+        updateTitle = (aiPlan?.session_name as string) || 'Séance Force'
+        updateMuscles = Array.isArray(session.target_muscles) ? session.target_muscles : []
+        updateGoal = session.session_goal as string | undefined
+      }
+    }
 
     return {
       id: row.id,
@@ -251,12 +306,14 @@ export class ScheduledActivitiesService {
         : new Date(row.scheduled_date).toISOString().slice(0, 10),
       module: row.activity_type,
       status: row.status,
-      title: typeLabels[row.activity_type] || row.activity_type,
+      title: updateTitle,
       notes: row.notes,
       created_at: row.created_at,
       updated_at: row.updated_at,
       activity_type: row.activity_type,
       activity_id: row.activity_id,
+      target_muscles: updateMuscles,
+      session_goal: updateGoal,
       _source: 'scheduled_activities',
     }
   }

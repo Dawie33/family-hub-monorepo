@@ -9,6 +9,7 @@ import { RUN_TYPE_LABELS, RunType } from '@/services/running'
 import { SESSION_GOAL_LABELS, StrengthSession, strengthService } from '@/services/strength'
 import { workoutsApi, workoutsService } from '@/services/workouts'
 import { Activity, Dumbbell, Footprints, Search, Sparkles, Trophy, Zap } from 'lucide-react'
+import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { PersonalizedWorkoutListItem } from './PersonalizedWorkoutListItem'
@@ -138,7 +139,7 @@ export function ScheduleWorkoutModal({ open, onOpenChange, selectedDate, onSched
     try {
       await activitiesApi.create({
         activity_type: activityTypeMap[sportTab],
-        scheduled_date: selectedDate.toISOString().slice(0, 10),
+        scheduled_date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`,
         activity_id: sportTab === 'strength' ? selectedStrengthId || undefined : undefined,
         notes: notes || undefined,
       })

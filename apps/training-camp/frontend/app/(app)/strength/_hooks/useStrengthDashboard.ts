@@ -4,27 +4,48 @@ import { strengthService, StrengthSession, StrengthStats } from '@/services/stre
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+interface Filters {
+  goal?: string
+  muscle?: string
+}
+
 export function useStrengthDashboard() {
   const [sessions, setSessions] = useState<StrengthSession[]>([])
   const [stats, setStats] = useState<StrengthStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<Filters>({})
 
-  const fetchAll = useCallback(async () => {
+  const fetchSessions = useCallback(async (activeFilters: Filters) => {
     try {
       setLoading(true)
-      const [sessionsData, statsData] = await Promise.all([
-        strengthService.getSessions({ limit: 20 }),
-        strengthService.getStats(),
-      ])
-      setSessions(sessionsData.rows)
-      setStats(statsData)
+      const data = await strengthService.getSessions({
+        limit: 50,
+        session_goal: activeFilters.goal || undefined,
+        target_muscle: activeFilters.muscle || undefined,
+      })
+      setSessions(data.rows)
     } catch (err) {
-      console.error('[useStrengthDashboard] fetchAll failed:', err)
-      toast.error('Impossible de charger les données Strength')
+      console.error('[useStrengthDashboard] fetchSessions failed:', err)
+      toast.error('Impossible de charger les séances')
     } finally { setLoading(false) }
   }, [])
 
-  useEffect(() => { fetchAll() }, [fetchAll])
+  const fetchStats = useCallback(async () => {
+    try {
+      const statsData = await strengthService.getStats()
+      setStats(statsData)
+    } catch (err) {
+      console.error('[useStrengthDashboard] fetchStats failed:', err)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
+
+  useEffect(() => {
+    fetchSessions(filters)
+  }, [fetchSessions, filters])
 
   const handleDelete = async (id: string) => {
     try {
@@ -34,5 +55,5 @@ export function useStrengthDashboard() {
     } catch { toast.error('Erreur lors de la suppression') }
   }
 
-  return { sessions, stats, loading, handleDelete, refetch: fetchAll }
+  return { sessions, stats, loading, filters, setFilters, handleDelete }
 }

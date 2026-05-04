@@ -32,7 +32,7 @@ export interface UnifiedActivity {
   completed_session_id?: string
 
   // Champs nouveaux modules
-  activity_type?: 'hyrox' | 'running' | 'athx'
+  activity_type?: 'hyrox' | 'running' | 'athx' | 'strength'
   activity_id?: string
 
   // Champs Force
